@@ -47,7 +47,7 @@ pipeline {
                         docker stop hello || true && docker rm hello || true && \
                         docker run -d --name hello -p 80:80 \
                           -e APP_ENV=production \
-                          -e BUILD_SHA=${env.GIT_SHA} -e BUILD_AT=\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
+                          -e BUILD_SHA=\${GIT_SHA} -e BUILD_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
                           --restart unless-stopped \
                           ${env.REGISTRY}/${env.IMAGE_NAME}:${env.GIT_SHA}
                     """.stripIndent()

@@ -15,7 +15,7 @@ class HelloController extends Controller
     {
         return response()->json([
             'message' => 'Hello World!',
-            'status' => 'success',
+            'status' => 'success TEST CHANGE',
             'timestamp' => now()->toISOString()
         ]);
     }

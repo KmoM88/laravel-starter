@@ -57,12 +57,3 @@ pipeline {
         }
     }
 }
-
-// ---
-// To use SSH keys in Jenkins:
-// 1. Go to Manage Jenkins > Manage Credentials > (global) > Add Credentials.
-// 2. Choose 'SSH Username with private key'.
-// 3. Username: root (or your droplet user)
-// 4. Private Key: Enter directly or from file (paste your private key, not the public one).
-// 5. ID: do-ssh-key
-// 6. Use this ID in the pipeline as shown above.

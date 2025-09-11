@@ -3,8 +3,7 @@ pipeline {
     environment {
         REGISTRY = "registry.digitalocean.com/YOUR_REGISTRY_NAME"
         IMAGE_NAME = "laravel-prod"
-        REGISTRY_USER = credentials('do_registry_user')
-        REGISTRY_PASS = credentials('do_registry_token')
+        REGISTRY_USER = credentials('DO_token')
     }
     stages {
         stage('Checkout') {
@@ -27,7 +26,7 @@ pipeline {
         }
         stage('Login to DigitalOcean Registry') {
             steps {
-                sh 'echo $REGISTRY_PASS | docker login $REGISTRY -u $REGISTRY_USER --password-stdin'
+                sh 'echo $REGISTRY_PASS
             }
         }
         stage('Push Images to Registry') {

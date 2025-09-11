@@ -26,7 +26,7 @@ pipeline {
         }
         stage('Login to DigitalOcean Registry') {
             steps {
-                sh 'echo $REGISTRY_CREDS'
+                sh 'echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USER --password-stdin'
             }
         }
         stage('Push Images to Registry') {

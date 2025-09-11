@@ -194,10 +194,84 @@ doctl account get
 
 ### 3. Create a Droplet
 
+Create a new droplet (VM) for deployment using the DigitalOcean CLI. Example:
+
 ```sh
-doctl compute droplet create \
+# Create a droplet named 'laravel-deploy' in region 'nyc3' with Ubuntu 22.04 and your SSH key
+doctl compute droplet create laravel-deploy \
+    --region nyc3 \
     --image ubuntu-22-04-x64 \
-    --size s-1vcpu-512mb-10gb \
-    --region sfo2 \
-    ubuntu-s-1vcpu-512mb-10gb-sfo2-01
+    --size s-1vcpu-1gb \
+    --ssh-keys <your_ssh_key_id>
+```
+
+Replace <your_ssh_key_id> with the ID or fingerprint of your SSH key (see doctl compute ssh-key list). Adjust region, size, and name as needed.
+
+Get ssh keys on DO with:
+
+```sh
+doctl compute ssh-key list
+```
+
+List droplets:
+
+```sh
+doctl compute droplet list
+```
+
+Delete a droplet:
+
+```sh
+doctl compute droplet delete <droplet_id>
+```
+
+This allows you to quickly create and destroy deployment VMs as needed for your CI/CD pipeline.
+
+### 4. Access the Droplet
+
+Get the public IP of your droplet:
+
+```sh
+doctl compute droplet list
+```
+
+SSH into the droplet:
+
+```sh
+ssh root@<droplet_ip>
+```
+
+### 6. Using SSH Keys in Jenkins
+
+To use SSH keys for deployment in Jenkins:
+
+1. Go to **Manage Jenkins** > **Manage Credentials** > (global) > **Add Credentials**.
+2. Choose **SSH Username with private key**.
+3. Username: `root` (or your droplet user)
+4. Private Key: Enter directly or from file (paste your private key, not the public one).
+5. ID: `do-ssh-key`
+6. Use this ID in the pipeline as shown in the Jenkinsfile.
+
+
+### 7. Install Docker on the Droplet
+
+SSH into your droplet and run:
+
+```sh
+apt-get update
+apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io
+
+systemctl enable docker
+systemctl start docker
+
+docker --version
 ```

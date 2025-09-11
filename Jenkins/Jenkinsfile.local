@@ -1,0 +1,18 @@
+pipeline {
+    agent any
+    environment {
+        IMAGE_NAME = "laravel-prod-local:test"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build Production Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME -f dockerfiles/Dockerfile.prod .'
+            }
+        }
+    }
+}

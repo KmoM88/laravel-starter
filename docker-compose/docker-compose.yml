@@ -14,7 +14,9 @@ services:
       - ./auth:/auth
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
     container_name: local-jenkins
     restart: always
     user: root

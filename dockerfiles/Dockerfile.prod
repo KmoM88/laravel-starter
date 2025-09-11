@@ -22,6 +22,10 @@ COPY nginx/supervisord.conf /etc/supervisord.conf
 
 RUN chown -R www-data:www-data /var/www/html
 
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost/api/hello || exit 1
+
 EXPOSE 80
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

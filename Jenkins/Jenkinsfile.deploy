@@ -3,7 +3,7 @@ pipeline {
     environment {
         REGISTRY = "registry.digitalocean.com/YOUR_REGISTRY_NAME"
         IMAGE_NAME = "laravel-prod"
-        REGISTRY_CREDS = credentials('do_registry_creds')
+        REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
         DROPLET_HOST = "45.55.50.54"
         REMOTE_USER = "root"

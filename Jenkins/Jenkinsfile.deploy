@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = "laravel-prod"
         REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
-        DROPLET_HOST = "45.55.50.54"
+        DROPLET_HOST = "159.203.133.170"
         REMOTE_USER = "root"
     }
     stages {

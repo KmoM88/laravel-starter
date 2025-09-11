@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY = "registry.digitalocean.com/YOUR_REGISTRY_NAME"
+        IMAGE_NAME = "laravel-prod"
+        REGISTRY_USER = credentials('do_registry_user')
+        REGISTRY_PASS = credentials('do_registry_token')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Get Git SHA') {
+            steps {
+                script {
+                    GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    env.GIT_SHA = GIT_SHA
+                }
+            }
+        }
+        stage('Build Production Image') {
+            steps {
+                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$GIT_SHA -t $REGISTRY/$IMAGE_NAME:latest -f dockerfiles/Dockerfile.prod .'
+            }
+        }
+        stage('Login to DigitalOcean Registry') {
+            steps {
+                sh 'echo $REGISTRY_PASS | docker login $REGISTRY -u $REGISTRY_USER --password-stdin'
+            }
+        }
+        stage('Push Images to Registry') {
+            steps {
+                sh 'docker push $REGISTRY/$IMAGE_NAME:$GIT_SHA'
+                sh 'docker push $REGISTRY/$IMAGE_NAME:latest'
+            }
+        }
+    }
+}

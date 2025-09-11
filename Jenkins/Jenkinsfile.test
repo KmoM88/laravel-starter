@@ -2,6 +2,10 @@ pipeline {
     agent any
     environment {
         DUMMY_IMAGE = "jenkins-dummy:test"
+        REGISTRY = "localhost:5000"
+        REGISTRY_USER = "testuser"
+        REGISTRY_PASS = "testpassword"
+        DUMMY_IMAGE_REGISTRY = "localhost:5000/jenkins-dummy:test"
     }
     stages {
         stage('Checkout') {
@@ -18,6 +22,21 @@ CMD echo "Hello from Jenkins dummy build!"
 '''
                 }
                 sh 'docker build -t $DUMMY_IMAGE -f Dockerfile.dummy .'
+            }
+        }
+        stage('Tag Dummy Image for Registry') {
+            steps {
+                sh 'docker tag $DUMMY_IMAGE $DUMMY_IMAGE_REGISTRY'
+            }
+        }
+        stage('Login to Registry') {
+            steps {
+                sh 'echo $REGISTRY_PASS | docker login $REGISTRY -u $REGISTRY_USER --password-stdin'
+            }
+        }
+        stage('Push Dummy Image to Registry') {
+            steps {
+                sh 'docker push $DUMMY_IMAGE_REGISTRY'
             }
         }
     }

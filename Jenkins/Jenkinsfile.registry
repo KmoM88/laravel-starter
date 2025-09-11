@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        REGISTRY = "registry.digitalocean.com/YOUR_REGISTRY_NAME"
+        REGISTRY = "registry.digitalocean.com/tierone"
         IMAGE_NAME = "laravel-prod"
         REGISTRY_USER = credentials('DO-token')
     }

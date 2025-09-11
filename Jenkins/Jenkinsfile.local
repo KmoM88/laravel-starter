@@ -1,7 +1,10 @@
 pipeline {
     agent any
     environment {
-        IMAGE_NAME = "laravel-prod-local:test"
+        REGISTRY = "localhost:5000"
+        IMAGE_NAME = "laravel-prod"
+        REGISTRY_USER = "testuser"
+        REGISTRY_PASS = "testpassword"
     }
     stages {
         stage('Checkout') {
@@ -9,9 +12,28 @@ pipeline {
                 checkout scm
             }
         }
+        stage('Get Git SHA') {
+            steps {
+                script {
+                    GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    env.GIT_SHA = GIT_SHA
+                }
+            }
+        }
         stage('Build Production Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME -f dockerfiles/Dockerfile.prod .'
+                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$GIT_SHA -t $REGISTRY/$IMAGE_NAME:latest -f dockerfiles/Dockerfile.prod .'
+            }
+        }
+        stage('Login to Registry') {
+            steps {
+                sh 'echo $REGISTRY_PASS | docker login $REGISTRY -u $REGISTRY_USER --password-stdin'
+            }
+        }
+        stage('Push Images to Registry') {
+            steps {
+                sh 'docker push $REGISTRY/$IMAGE_NAME:$GIT_SHA'
+                sh 'docker push $REGISTRY/$IMAGE_NAME:latest'
             }
         }
     }

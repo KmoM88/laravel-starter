@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY = "registry.digitalocean.com/YOUR_REGISTRY_NAME"
+        IMAGE_NAME = "laravel-prod"
+        REGISTRY_CREDS = credentials('do_registry_creds')
+        SSH_KEY = credentials('do-ssh-key')
+        DROPLET_HOST = "45.55.50.54"
+        REMOTE_USER = "root"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Get Git SHA') {
+            steps {
+                script {
+                    GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    env.GIT_SHA = GIT_SHA
+                }
+            }
+        }
+        stage('Build Production Image') {
+            steps {
+                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$GIT_SHA -t $REGISTRY/$IMAGE_NAME:latest -f dockerfiles/Dockerfile.prod .'
+            }
+        }
+        stage('Login to DigitalOcean Registry') {
+            steps {
+                sh 'echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USR --password-stdin'
+            }
+        }
+        stage('Push Images to Registry') {
+            steps {
+                sh 'docker push $REGISTRY/$IMAGE_NAME:$GIT_SHA'
+                sh 'docker push $REGISTRY/$IMAGE_NAME:latest'
+            }
+        }
+        stage('Deploy to Droplet via SSH') {
+            steps {
+                script {
+                    def deployCmd = '''
+                        docker login $REGISTRY -u $REGISTRY_CREDS_USR -p $REGISTRY_CREDS_PSW && \
+                        docker pull $REGISTRY/$IMAGE_NAME:$GIT_SHA && \
+                        docker stop hello || true && docker rm hello || true && \
+                        docker run -d --name hello -p 80:80 \
+                          -e APP_ENV=production \
+                          -e BUILD_SHA=$GIT_SHA -e BUILD_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+                          --restart unless-stopped \
+                          $REGISTRY/$IMAGE_NAME:$GIT_SHA
+                    '''.stripIndent()
+                    sh """
+                    ssh -o StrictHostKeyChecking=no -i $SSH_KEY $REMOTE_USER@$DROPLET_HOST '${deployCmd}'
+                    """
+                }
+            }
+        }
+    }
+}
+
+// ---
+// To use SSH keys in Jenkins:
+// 1. Go to Manage Jenkins > Manage Credentials > (global) > Add Credentials.
+// 2. Choose 'SSH Username with private key'.
+// 3. Username: root (or your droplet user)
+// 4. Private Key: Enter directly or from file (paste your private key, not the public one).
+// 5. ID: do-ssh-key
+// 6. Use this ID in the pipeline as shown above.

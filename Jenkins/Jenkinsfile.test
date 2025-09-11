@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY = "localhost:5000"
+        IMAGE = "jenkins-test-image"
+        TAG = "test"
+        REGISTRY_USER = credentials('testuser')
+        REGISTRY_PASS = credentials('testpassword')
+    }
+    stages {
+        stage('Build Dummy Image') {
+            steps {
+                script {
+                    writeFile file: 'Dockerfile.dummy', text: '''
+																FROM alpine:3.18
+																CMD echo "Hello from Jenkins test!"
+																'''
+                }
+                sh 'docker build -t $REGISTRY/$IMAGE:$TAG -f Dockerfile.dummy .'
+            }
+        }
+        stage('Login to Registry') {
+            steps {
+                sh 'echo $REGISTRY_PASS | docker login $REGISTRY -u $REGISTRY_USER --password-stdin'
+            }
+        }
+        stage('Push Image') {
+            steps {
+                sh 'docker push $REGISTRY/$IMAGE:$TAG'
+            }
+        }
+        stage('Pull Image (Verify)') {
+            steps {
+                sh 'docker pull $REGISTRY/$IMAGE:$TAG'
+            }
+        }
+    }
+    post {
+        always {
+            sh 'docker rmi $REGISTRY/$IMAGE:$TAG || true'
+            sh 'rm -f Dockerfile.dummy'
+        }
+    }
+}

@@ -12,9 +12,9 @@ pipeline {
             steps {
                 script {
                     writeFile file: 'Dockerfile.dummy', text: '''
-																FROM alpine:3.18
-																CMD echo "Hello from Jenkins test!"
-																'''
+FROM alpine:3.18
+CMD echo "Hello from Jenkins test!"
+'''
                 }
                 sh 'docker build -t $REGISTRY/$IMAGE:$TAG -f Dockerfile.dummy .'
             }
@@ -37,8 +37,18 @@ pipeline {
     }
     post {
         always {
-            sh 'docker rmi $REGISTRY/$IMAGE:$TAG || true'
-            sh 'rm -f Dockerfile.dummy'
+            script {
+                try {
+                    sh 'docker rmi $REGISTRY/$IMAGE:$TAG || true'
+                } catch (err) {
+                    echo "Warning: could not remove image: ${err}"
+                }
+                try {
+                    sh 'rm -f Dockerfile.dummy || true'
+                } catch (err) {
+                    echo "Warning: could not remove Dockerfile.dummy: ${err}"
+                }
+            }
         }
     }
 }

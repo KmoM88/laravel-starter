@@ -3,7 +3,7 @@ pipeline {
     environment {
         REGISTRY = "registry.digitalocean.com/tierone"
         IMAGE_NAME = "laravel-prod"
-        REGISTRY = credentials('DO-token')
+        REGISTRY_CREDS = credentials('DO-token')
     }
     stages {
         stage('Checkout') {
@@ -26,7 +26,7 @@ pipeline {
         }
         stage('Login to DigitalOcean Registry') {
             steps {
-                sh 'echo $REGISTRY'
+                sh 'echo $REGISTRY_CREDS'
             }
         }
         stage('Push Images to Registry') {

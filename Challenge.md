@@ -47,10 +47,7 @@ Deploy the provided Laravel 11 Hello World API as a single Docker container to p
   - Login & Push to registry
   - Deploy to Droplet via SSH:
     ```sh
-    docker pull REGISTRY/IMAGE_NAME:SHA
-    docker stop hello || true && docker rm hello || true
     docker run -d --name hello -p 80:80 \
-      -e APP_ENV=production \
       -e APP_KEY="$APP_KEY" \
       -e BUILD_SHA=... -e BUILD_AT=... \
       --restart unless-stopped \
@@ -108,7 +105,7 @@ To test the pipeline locally before deploying to DigitalOcean, you can spin up a
 
 ```sh
 cd docker-compose
-# Create credentials for the registry (only the first time):
+# Create credentials for the registry (only the first time) (sudo apt-get install apache2-utils if you don't have htpasswd):
 mkdir -p auth
 htpasswd -Bbn testuser testpassword > auth/htpasswd
 # Start the services
@@ -120,3 +117,87 @@ Available services:
 - Docker Registry: http://localhost:5000 (user: testuser, pass: testpassword)
 
 This will allow you to test building and pushing images from Jenkins to a local private registry.
+
+## 4. Registry on DigitalOcean
+
+### 1. Create a Container Registry in DigitalOcean
+
+1. Go to the [DigitalOcean Control Panel](https://cloud.digitalocean.com/registries).
+2. Click "Create Registry".
+3. Name your registry (e.g., `tierone`).
+4. Complete the creation process.
+
+### 2. Add Registry Credentials to Jenkins
+
+1. In Jenkins, go to **Manage Jenkins** > **Manage Credentials**.
+2. Select the **(global)** domain (recommended for most use cases).
+3. Click **Add Credentials**.
+4. Choose **Username with password** as the type.
+   - **Username:** `doctl` (for DigitalOcean Container Registry, the username is always `doctl`)
+   - **Password:** Your DigitalOcean Personal Access Token (PAT) with at least `read` and `write` scopes for the registry (recommended: generate a new token with only the required scopes).
+   - **ID:** `do_registry_creds` (recommended, matches pipeline usage)
+   - **Description:** (optional, e.g., "DigitalOcean Container Registry credentials")
+5. Save the credentials.
+
+**Tip:** For better security, use the most restrictive scope possible (e.g., only registry access, not full account access). Store credentials in the global domain unless you want to restrict them to a specific folder or job.
+
+You can now reference these credentials in your Jenkins pipeline using:
+
+```groovy
+environment {
+  REGISTRY_CREDS = credentials('do_registry_creds')
+}
+```
+
+And use them in your login step:
+
+```groovy
+sh 'echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USR --password-stdin'
+```
+
+## 5. Infrastructure on DigitalOcean
+
+### 1. Install doctl
+
+`doctl` is the official CLI for DigitalOcean. We use it to authenticate and manage resources.
+
+```sh
+# On Ubuntu / Debian
+sudo snap install doctl
+# Or, if you use Homebrew (macOS/Linux):
+brew install doctl
+```
+
+Verify installation:
+
+```sh
+doctl version
+```
+
+### 2. Login to DigitalOcean
+
+First, generate a Personal Access Token (PAT) at:
+👉 https://cloud.digitalocean.com/account/api/tokens
+
+Then log in:
+
+```sh
+doctl auth init
+# Paste the token when prompted
+```
+
+Verify account access:
+
+```sh
+doctl account get
+```
+
+### 3. Create a Droplet
+
+```sh
+doctl compute droplet create \
+    --image ubuntu-22-04-x64 \
+    --size s-1vcpu-512mb-10gb \
+    --region sfo2 \
+    ubuntu-s-1vcpu-512mb-10gb-sfo2-01
+```

@@ -1,9 +1,23 @@
 pipeline {
     agent any
+    environment {
+        DUMMY_IMAGE = "jenkins-dummy:test"
+    }
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+        stage('Build Dummy Image') {
+            steps {
+                script {
+                    writeFile file: 'Dockerfile.dummy', text: '''
+FROM alpine:3.18
+CMD echo "Hello from Jenkins dummy build!"
+'''
+                }
+                sh 'docker build -t $DUMMY_IMAGE -f Dockerfile.dummy .'
             }
         }
     }

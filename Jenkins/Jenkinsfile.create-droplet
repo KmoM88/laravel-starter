@@ -68,7 +68,7 @@ pipeline {
                     //         '
                     //     """
                     //     echo "Docker installation completed on ${dropletIP}"
-                    }
+                    // }
                 }
             }
         }

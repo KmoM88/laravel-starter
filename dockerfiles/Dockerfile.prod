@@ -21,9 +21,15 @@ COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/supervisord.conf /etc/supervisord.conf
 
 RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /var/log/nginx
+RUN chown -R www-data:www-data /var/lib/nginx
+RUN chown -R www-data:www-data /run/nginx
+
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost/api/hello || exit 1
+    CMD curl -f http://localhost:8080/api/hello || exit 1
+
+USER www-data
 
 EXPOSE 8080
 

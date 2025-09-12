@@ -21,53 +21,53 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
-                    if (exists) {
-                        echo "Droplet '${DROPLET_NAME}' already exists. Skipping creation."
-                    } else {
-                        // Obtener ID de la key con nombre JenkisDeploy
-                        def keyId = sh(
-                            script: "doctl compute ssh-key list --output json | jq -r '.[] | select(.name==\"${SSH_KEY_NAME}\") | .id'",
-                            returnStdout: true
-                        ).trim()
+                    // if (exists) {
+                    //     echo "Droplet '${DROPLET_NAME}' already exists. Skipping creation."
+                    // } else {
+                    //     // Obtener ID de la key con nombre JenkisDeploy
+                    //     def keyId = sh(
+                    //         script: "doctl compute ssh-key list --output json | jq -r '.[] | select(.name==\"${SSH_KEY_NAME}\") | .id'",
+                    //         returnStdout: true
+                    //     ).trim()
 
-                        if (!keyId) {
-                            error "SSH Key '${SSH_KEY_NAME}' not found in DigitalOcean."
-                        }
+                    //     if (!keyId) {
+                    //         error "SSH Key '${SSH_KEY_NAME}' not found in DigitalOcean."
+                    //     }
 
-                        // Crear el droplet
-                        sh """
-                            doctl compute droplet create ${DROPLET_NAME} \\
-                                --region ${REGION} \\
-                                --image ${IMAGE} \\
-                                --size ${SIZE} \\
-                                --ssh-keys ${keyId} \\
-                                --wait
-                        """
-                        echo "Droplet '${DROPLET_NAME}' created successfully."
+                    //     // Crear el droplet
+                    //     sh """
+                    //         doctl compute droplet create ${DROPLET_NAME} \\
+                    //             --region ${REGION} \\
+                    //             --image ${IMAGE} \\
+                    //             --size ${SIZE} \\
+                    //             --ssh-keys ${keyId} \\
+                    //             --wait
+                    //     """
+                    //     echo "Droplet '${DROPLET_NAME}' created successfully."
 
-                        // Obtener IP pública del droplet
-                        def dropletIP = sh(
-                            script: "doctl compute droplet list ${DROPLET_NAME} --format PublicIPv4 --no-header",
-                            returnStdout: true
-                        ).trim()
+                    //     // Obtener IP pública del droplet
+                    //     def dropletIP = sh(
+                    //         script: "doctl compute droplet list ${DROPLET_NAME} --format PublicIPv4 --no-header",
+                    //         returnStdout: true
+                    //     ).trim()
 
-                        echo "Installing Docker on ${dropletIP}..."
+                    //     echo "Installing Docker on ${dropletIP}..."
                         
-                        // Instalar Docker vía SSH
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} '
-                                apt-get update && \
-                                apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release && \
-                                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
-                                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-                                apt-get update && \
-                                apt-get install -y docker-ce docker-ce-cli containerd.io && \
-                                systemctl enable docker && \
-                                systemctl start docker && \
-                                docker --version
-                            '
-                        """
-                        echo "Docker installation completed on ${dropletIP}"
+                    //     // Instalar Docker vía SSH
+                    //     sh """
+                    //         ssh -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} '
+                    //             apt-get update && \
+                    //             apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release && \
+                    //             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+                    //             echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+                    //             apt-get update && \
+                    //             apt-get install -y docker-ce docker-ce-cli containerd.io && \
+                    //             systemctl enable docker && \
+                    //             systemctl start docker && \
+                    //             docker --version
+                    //         '
+                    //     """
+                    //     echo "Docker installation completed on ${dropletIP}"
                     }
                 }
             }

@@ -14,11 +14,22 @@ pipeline {
                 sh 'doctl auth init -t $REGISTRY_CREDS_PSW'
             }
         }
+		stage('Get Droplet IP') {
+			steps {
+				script {
+					env.DROPLET_HOST = sh(
+						script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
+						returnStdout: true
+					).trim()
+					echo "Droplet IP: ${env.DROPLET_HOST}"
+				}
+			}
+		}
         stage('Obtener tag actual en el droplet') {
 			steps {
 				script {
 					def cmd = """
-						ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \\
+						ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$env.DROPLET_HOST \\
 						"docker inspect --format='{{.Config.Image}}' $CONTAINER_NAME | cut -d: -f2"
 					"""
 					env.currentTag = sh(script: cmd, returnStdout: true).trim()
@@ -46,18 +57,6 @@ pipeline {
 					}
 					env.PREV_TAG = prevTag
 					echo "Tag previo: ${env.PREV_TAG}"
-				}
-			}
-		}
-		stage('Get Droplet IP') {
-			steps {
-				script {
-					sh "doctl auth init -t ${REGISTRY_CREDS_PSW}"
-					env.DROPLET_HOST = sh(
-						script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
-						returnStdout: true
-					).trim()
-					echo "Droplet IP: ${env.DROPLET_HOST}"
 				}
 			}
 		}

@@ -40,7 +40,7 @@ pipeline {
 		stage('Get Droplet IP') {
 			steps {
 				script {
-					sh "doctl auth init -t ${DOCTL_TOKEN_PSW}"
+					sh "doctl auth init -t ${REGISTRY_CREDS_PSW}"
 					env.DROPLET_HOST = sh(
 						script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
 						returnStdout: true

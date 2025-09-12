@@ -8,7 +8,6 @@ pipeline {
         CONTAINER_NAME = "laravel-app"
         IMAGE_NAME = "laravel-prod"
         SSH_USER = "root"
-        SSH_HOST = "134.209.37.24"
         REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
     }
@@ -18,7 +17,17 @@ pipeline {
                 sh 'doctl auth init -t $REGISTRY_CREDS_PSW'
             }
         }
-
+		stage('Get Droplet IP') {
+			steps {
+				script {
+					env.DROPLET_HOST = sh(
+						script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
+						returnStdout: true
+					).trim()
+					echo "Droplet IP: ${env.DROPLET_HOST}"
+				}
+			}
+		}
         stage('Verificar SHA en registry') {
             steps {
                 script {
@@ -44,7 +53,7 @@ pipeline {
                 script {
                     def tag = env.DEPLOY_TAG
                     sh """
-                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
+                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$env.DROPLET_HOST '
                         echo "Deteniendo container actual..."
                         docker stop $CONTAINER_NAME || true
                         docker rm $CONTAINER_NAME || true

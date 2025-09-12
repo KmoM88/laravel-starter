@@ -3,6 +3,7 @@ pipeline {
     environment {
         DOCKER_REGISTRY = "registry.digitalocean.com/tierone"
         CONTAINER_NAME = "laravel-app"
+        IMAGE_NAME = "laravel-prod"
         SSH_USER = "root"
         SSH_HOST = "134.209.37.24"
 		REGISTRY_CREDS = credentials('DO-token')
@@ -31,7 +32,7 @@ pipeline {
 				script {
 					def currentTag = env.currentTag ?: 'latest'
 					sh '''
-						doctl registry repository list-tags $CONTAINER_NAME --output json | jq -r '.tags[].tag' | sort -Vr > tags.txt
+						doctl registry repository list-tags $IMAGE_NAME --output json | jq -r '.tags[].tag' | sort -Vr > tags.txt
 					'''
 					def tags = readFile('tags.txt').split('\n')
 					def prevTag = null

@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'TARGET_SHA', defaultValue: '', description: 'SHA/tag de la imagen a desplegar')
+    }
+    environment {
+        DOCKER_REGISTRY = "registry.digitalocean.com/tierone"
+        CONTAINER_NAME = "laravel-app"
+        IMAGE_NAME = "laravel-prod"
+        SSH_USER = "root"
+        SSH_HOST = "134.209.37.24"
+        REGISTRY_CREDS = credentials('DO-token')
+        SSH_KEY = credentials('do-ssh-key')
+    }
+    stages {
+        stage('Login doctl') {
+            steps {
+                sh 'doctl auth init -t $REGISTRY_CREDS_PSW'
+            }
+        }
+
+        stage('Verificar SHA en registry') {
+            steps {
+                script {
+                    if (!params.TARGET_SHA) {
+                        error("Debe proveer un TARGET_SHA como parámetro del build")
+                    }
+                    // Listar tags en el registry y verificar que exista el SHA
+                    sh """
+                        doctl registry repository list-tags $IMAGE_NAME --output json | jq -r '.[].tag' > tags.txt
+                    """
+                    def tags = readFile('tags.txt').split('\n')
+                    if (!tags.contains(params.TARGET_SHA)) {
+                        error("El SHA/tag '${params.TARGET_SHA}' no existe en el registry")
+                    }
+                    env.DEPLOY_TAG = params.TARGET_SHA
+                    echo "SHA válido: ${env.DEPLOY_TAG}"
+                }
+            }
+        }
+
+        stage('Desplegar container con SHA') {
+            steps {
+                script {
+                    def tag = env.DEPLOY_TAG
+                    sh """
+                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
+                        echo "Deteniendo container actual..."
+                        docker stop $CONTAINER_NAME || true
+                        docker rm $CONTAINER_NAME || true
+                        echo "Extrayendo imagen $DOCKER_REGISTRY/$IMAGE_NAME:$tag..."
+                        docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$tag
+                        echo "Corriendo nueva versión..."
+                        docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:$tag
+                    '
+                    """
+                }
+            }
+        }
+    }
+}

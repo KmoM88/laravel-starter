@@ -15,47 +15,41 @@ pipeline {
             }
         }
         stage('Obtener tag actual en el droplet') {
-            steps {
-                script {
-					def cmd = '''
-                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \
+			steps {
+				script {
+					def cmd = """
+						ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \\
 						"docker inspect --format='{{.Config.Image}}' $CONTAINER_NAME | cut -d: -f2"
-					'''
-					def env.currentTag = sh(script: cmd, returnStdout: true).trim()
+					"""
+					env.currentTag = sh(script: cmd, returnStdout: true).trim()
 					echo "Tag actual: ${env.currentTag}"
-                }
-            }
-        }
+				}
+			}
+		}
         stage('Buscar tag previo en el registry') {
-            steps {
-                script {
-                    def currentTag = ''
-                    if (env.currentTag) {
-                        currentTag = env.currentTag
-                    } else {
-                        echo 'No se encontró el tag actual, usando "latest" como fallback.'
-                        currentTag = 'latest'
-                    }
-                    sh '''
-                        doctl registry repository list-tags $CONTAINER_NAME --output json | jq -r '.tags[].tag' | sort -Vr > tags.txt
-                    '''
-                    def tags = readFile('tags.txt').split('\n')
-                    def prevTag = null
-                    for (int i = 0; i < tags.size(); i++) {
-                        if (tags[i] == currentTag && i+1 < tags.size()) {
-                            prevTag = tags[i+1]
-                            break
-                        }
-                    }
-                    if (!prevTag) {
-                        error("No se encontró un tag previo para rollback.")
-                    }
-                    env.PREV_TAG = prevTag
-                    echo "Tag previo: ${env.PREV_TAG}"
-                }
-            }
-        }
-        // stage('Rollback en el droplet') {
+			steps {
+				script {
+					def currentTag = env.currentTag ?: 'latest'
+					sh '''
+						doctl registry repository list-tags $CONTAINER_NAME --output json | jq -r '.tags[].tag' | sort -Vr > tags.txt
+					'''
+					def tags = readFile('tags.txt').split('\n')
+					def prevTag = null
+					for (int i = 0; i < tags.size(); i++) {
+						if (tags[i] == currentTag && i+1 < tags.size()) {
+							prevTag = tags[i+1]
+							break
+						}
+					}
+					if (!prevTag) {
+						error("No se encontró un tag previo para rollback.")
+					}
+					env.PREV_TAG = prevTag
+					echo "Tag previo: ${env.PREV_TAG}"
+				}
+			}
+		}
+		// stage('Rollback en el droplet') {
         //     steps {
         //         script {
         //             // Detiene y elimina el contenedor actual, luego ejecuta el anterior

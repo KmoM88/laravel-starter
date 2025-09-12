@@ -10,7 +10,7 @@ pipeline {
         SSH_USER = "root"
     }
     stages {
-        stage('Create Droplet and install Docker') {
+        stage('Crear Droplet') {
             steps {
                 script {
                     sh "doctl auth init -t ${DOCTL_TOKEN_PSW}"
@@ -40,29 +40,63 @@ pipeline {
                                 --wait
                         """
                         echo "Droplet '${DROPLET_NAME}' created successfully."
-
-                        def dropletIP = sh(
-                            script: "doctl compute droplet list ${DROPLET_NAME} --format PublicIPv4 --no-header",
-                            returnStdout: true
-                        ).trim()
-
-                        echo "Installing Docker on ${dropletIP}..."
-
-						sh """
-						ssh -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} << 'ENDSSH'
-						apt-get update
-						apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-						curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-						echo "deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-						apt-get update
-						apt-get install -y docker-ce docker-ce-cli containerd.io
-						systemctl enable docker
-						systemctl start docker
-						docker --version
-						ENDSSH
-						"""
-                        echo "Docker installation completed on ${dropletIP}"
                     }
+                }
+            }
+        }
+
+        stage('Esperar a que el droplet esté disponible') {
+            steps {
+                script {
+                    def dropletIP = sh(
+                        script: "doctl compute droplet list ${DROPLET_NAME} --format PublicIPv4 --no-header",
+                        returnStdout: true
+                    ).trim()
+                    env.DROPLET_IP = dropletIP
+
+                    echo "Esperando a que ${dropletIP} acepte conexiones SSH..."
+                    def maxRetries = 30
+                    def waitSec = 10
+                    def reachable = false
+
+                    for (int i = 1; i <= maxRetries; i++) {
+                        try {
+                            sh "ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} 'echo OK'"
+                            reachable = true
+                            echo "Droplet disponible después de ${i} intentos."
+                            break
+                        } catch (err) {
+                            echo "Intento ${i}: droplet no disponible aún. Esperando ${waitSec} segundos..."
+                            sleep waitSec
+                        }
+                    }
+                    if (!reachable) {
+                        error("No se pudo conectar al droplet después de ${maxRetries} intentos.")
+                    }
+                }
+            }
+        }
+
+        stage('Instalar Docker') {
+            steps {
+                script {
+                    def dropletIP = env.DROPLET_IP
+                    echo "Instalando Docker en ${dropletIP}..."
+
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} << 'ENDSSH'
+                    apt-get update
+                    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+                    echo "deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                    apt-get update
+                    apt-get install -y docker-ce docker-ce-cli containerd.io
+                    systemctl enable docker
+                    systemctl start docker
+                    docker --version
+                    ENDSSH
+                    """
+                    echo "Docker installation completed on ${dropletIP}"
                 }
             }
         }

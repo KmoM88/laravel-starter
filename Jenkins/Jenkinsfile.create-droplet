@@ -85,6 +85,7 @@ pipeline {
 
 					echo "Instalando Docker en ${dropletIP}..."
 					def installDockerCmd = """
+					sleep 60
 					apt-get update
 					sleep 15
 					apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release

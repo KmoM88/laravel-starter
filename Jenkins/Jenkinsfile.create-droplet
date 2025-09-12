@@ -83,13 +83,8 @@ pipeline {
                 script {
 					def dropletIP = env.DROPLET_IP
 
-					writeFile file: 'jenkins_ssh_key', text: env.SSH_KEY
-					sh 'chmod 600 jenkins_ssh_key'
-
 					echo "Instalando Docker en ${dropletIP}..."
-
-					sh """
-					ssh -i jenkins_ssh_key -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} '
+					def installDockerCmd = """
 						apt-get update
 						apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 						curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
@@ -99,8 +94,9 @@ pipeline {
 						systemctl enable docker
 						systemctl start docker
 						docker --version
-					'
-					"""
+					""".stripIndent()
+
+					sh "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} '${installDockerCmd}'"
 				}
             }
         }

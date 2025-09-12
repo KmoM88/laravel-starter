@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         DOCKER_REGISTRY = "registry.digitalocean.com/tierone"
-        IMAGE_NAME = "laravel-prod"
+        CONTAINER_NAME = "laravel-app"
         SSH_USER = "root"
         SSH_HOST = "134.209.37.24"
         SSH_KEY = credentials('do-ssh-key')
@@ -12,7 +12,7 @@ pipeline {
             steps {
                 script {
                     CURRENT_TAG = sh(
-                        script: "ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST 'docker ps --filter name=$IMAGE_NAME -q | xargs docker inspect --format=\"{{.Config.Image}}\"'",
+                        script: "ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST 'docker inspect --format='{{index .Config.Image}}' $CONTAINER_NAME | cut -d: -f2'",
                         returnStdout: true
                     ).trim()
                     echo "Tag actual: ${CURRENT_TAG}"

@@ -21,6 +21,7 @@ COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/supervisord.conf /etc/supervisord.conf
 
 RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /var/lib/nginx/logs
 
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

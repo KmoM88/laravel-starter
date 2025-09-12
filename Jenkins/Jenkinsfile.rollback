@@ -5,7 +5,6 @@ pipeline {
         CONTAINER_NAME = "laravel-app"
         IMAGE_NAME = "laravel-prod"
         SSH_USER = "root"
-        SSH_HOST = "134.209.37.24"
 		REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
     }
@@ -50,11 +49,23 @@ pipeline {
 				}
 			}
 		}
+		stage('Get Droplet IP') {
+			steps {
+				script {
+					sh "doctl auth init -t ${REGISTRY_CREDS_PSW}"
+					env.DROPLET_HOST = sh(
+						script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
+						returnStdout: true
+					).trim()
+					echo "Droplet IP: ${env.DROPLET_HOST}"
+				}
+			}
+		}
 		stage('Rollback en el droplet') {
 			steps {
 				script {
 					sh """
-					ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
+					ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$env.DROPLET_HOST '
 						docker stop $CONTAINER_NAME || true
 						docker rm $CONTAINER_NAME || true
 						docker pull $DOCKER_REGISTRY/$IMAGE_NAME:${env.PREV_TAG}

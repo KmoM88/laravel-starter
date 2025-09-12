@@ -87,6 +87,7 @@ pipeline {
 					def installDockerCmd = """
 					apt-get update
 					apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+					curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 					""".stripIndent()
 
 					sh "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} '${installDockerCmd}'"

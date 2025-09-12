@@ -73,11 +73,13 @@ Deploy the provided Laravel 11 Hello World API as a single Docker container to p
 
 ---
 
+# DevOps Challenge — Laravel Hello World
 
-# Solution: Generated Files
+## 1. Docker
 
-## 1. Dockerfile.dev (for local testing)
-- Enables local development and testing using Laravel's built-in server.
+### a. Development (`Dockerfile.dev`)
+- Used for local development and testing.
+- Runs Laravel using the built-in PHP development server.
 - Commands:
 
 ```sh
@@ -85,10 +87,22 @@ docker build -t laravel-dev -f dockerfiles/Dockerfile.dev .
 docker run --rm -it -p 8000:8000 laravel-dev
 ```
 
-## 2. Dockerfile.prod and configuration files
-- Multi-stage: separates dependency installation (builder) from the runtime environment, resulting in a smaller and more secure image.
-- Includes nginx and php-fpm configuration to serve Laravel from `/public`.
-- **Non-root execution:** The container is designed so that php-fpm and nginx worker processes run as the non-root user `www-data`, while the nginx master process starts as root (required to bind to port 80) and then drops privileges. This setup meets the challenge requirement of not running the application as root, while ensuring nginx can function properly in a containerized environment.
+### b. Production (`Dockerfile.prod`)
+- Multi-stage build: separates dependency installation (Composer builder) from runtime environment (nginx + php-fpm).
+- Runs as **non-root**:
+  - All processes run under a non-root user where possible.
+  - php-fpm and nginx workers run as `www-data`.
+- Logging:
+  - **Access logs → stdout**
+  - **Error logs → stderr**
+- Port binding:
+  - In the challenge, the requirement was `-p 80:80`.  
+  - Binding port 80 directly requires root privileges. To comply with **non-root execution**, the image exposes **port 8080** instead.  
+  - Deployment runs as:
+    ```sh
+    docker run -d -p 80:8080 laravel-prod
+    ```
+  - If binding `-p 80:80` is mandatory, only nginx/php-fpm **workers** can run as non-root, while the master process still requires root.
 - Commands:
 
 ```sh
@@ -97,14 +111,22 @@ docker run --rm -it -p 8080:8080 laravel-prod
 ```
 
 - Configuration files:
-  - `nginx/nginx.conf`: nginx configuration to serve the app (includes `user www-data;` for non-root workers)
+  - `nginx/nginx.conf`: nginx configuration to serve the app
   - `nginx/supervisord.conf` (if supervisor is used, though migrating to one process per container is recommended for the future)
 
 ---
 
-## 3. Local Testing: Jenkins and Docker Registry
+## 2. Jenkins
 
-To test the pipeline locally before deploying to DigitalOcean, you can spin up a Jenkins server and a private Docker Registry using docker-compose:
+### a. Local Testing (Jenkins + Local Registry)
+- A `docker-compose.yml` is included to spin up:
+  - A local Jenkins instance
+  - A private Docker Registry
+- Allows testing pipelines end-to-end before using DigitalOcean.
+- Access:
+  - Jenkins: http://localhost:8081 (default: `admin/admin`)
+  - Registry: http://localhost:5000
+- Commands:
 
 ```sh
 cd docker-compose
@@ -115,166 +137,81 @@ htpasswd -Bbn testuser testpassword > auth/htpasswd
 docker compose up -d
 ```
 
-Available services:
-- Jenkins: http://localhost:8081 (admin/admin)
-- Docker Registry: http://localhost:5000 (user: testuser, pass: testpassword)
+### b. Pipelines
 
-This will allow you to test building and pushing images from Jenkins to a local private registry.
+#### `Jenkinsfile.test`
+- Builds a dummy image (`alpine:3.18`)
+- Pushes it to the **local registry**  
+- Purpose: test credentials, registry, and connectivity.
 
-## 4. Registry on DigitalOcean
+#### `Jenkinsfile.local`
+- Builds the **Laravel app image** locally.
+- Tags with both **SHA** and **latest**.
+- Pushes to the **local registry**.
 
-### 1. Create a Container Registry in DigitalOcean
+#### `Jenkinsfile.registry`
+- Builds the **Laravel app image**.
+- Pushes to **DigitalOcean Container Registry (DOCR)**.  
+- Requires a **DigitalOcean API token** (generated via the control panel) stored securely in Jenkins credentials.
 
-1. Go to the [DigitalOcean Control Panel](https://cloud.digitalocean.com/registries).
-2. Click "Create Registry".
-3. Name your registry (e.g., `tierone`).
-4. Complete the creation process.
+#### `Jenkinsfile.deploy`
+- Builds the image.
+- Pushes it to **DOCR**.
+- Deploys to a **DigitalOcean droplet** via SSH:
+  - Requires a **key pair** uploaded to DigitalOcean.
+  - Jenkins uses the private key to connect.
+- Steps:
+  - Pull new image
+  - Stop/remove old container
+  - Run new container on port `80:8080`.
 
-### 2. Add Registry Credentials to Jenkins
+#### `Jenkinsfile.rollback`
+- Identifies the currently deployed tag.
+- Rolls back to the previous image version in the registry.
 
-1. In Jenkins, go to **Manage Jenkins** > **Manage Credentials**.
-2. Select the **(global)** domain (recommended for most use cases).
-3. Click **Add Credentials**.
-4. Choose **Username with password** as the type.
-   - **Username:** `doctl` (for DigitalOcean Container Registry, the username is always `doctl`)
-   - **Password:** Your DigitalOcean Personal Access Token (PAT) with at least `read` and `write` scopes for the registry (recommended: generate a new token with only the required scopes).
-   - **ID:** `do_registry_creds` (recommended, matches pipeline usage)
-   - **Description:** (optional, e.g., "DigitalOcean Container Registry credentials")
-5. Save the credentials.
+#### `Jenkinsfile.select-sha`
+- Deploys a specific image version.
+- Parameterized with a **SHA/tag**.
 
-**Tip:** For better security, use the most restrictive scope possible (e.g., only registry access, not full account access). Store credentials in the global domain unless you want to restrict them to a specific folder or job.
+#### `Jenkinsfile.create-droplet`
+- Creates a **droplet named `laravel-deploy`** if it doesn’t already exist.
+- Installs Docker automatically on the droplet.
+- Leaves the instance ready for deployment.
 
-You can now reference these credentials in your Jenkins pipeline using:
+#### `Jenkinsfile.remove-droplet`
+- Deletes the droplet named `laravel-deploy`.
 
-```groovy
-environment {
-  REGISTRY_CREDS = credentials('do_registry_creds')
-}
-```
+---
 
-And use them in your login step:
+## 3. Jenkins Configuration
 
-```groovy
-sh 'echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USR --password-stdin'
-```
+- The Jenkins instance requires:
+  - `doctl` (DigitalOcean CLI)
+  - `jq` (for parsing JSON responses)
+- Two secrets must be stored in Jenkins credentials:
+  1. **DigitalOcean API Token**
+  2. **SSH private key** for droplet connection
 
-## 5. Infrastructure on DigitalOcean
+---
 
-### 1. Install doctl
+## 4. Future Improvements
 
-`doctl` is the official CLI for DigitalOcean. We use it to authenticate and manage resources.
+- **Hardcoded values**:
+  - Ubuntu release and architecture for Docker installation in droplet.
+  - SSH user (`root`).
+  - Container/registry/image names.  
+  These can be parameterized for multiple environments (dev/test/prod).
+- **Remote Jenkins**:
+  - Instead of running Jenkins locally, a dedicated droplet could manage pipelines. The image build for the docker compose setup could be pushed to DOCR and used in a remote Jenkins instance. Should add jq and doctl installation steps in the Jenkinsfile.
+- **Environment variables**:
+  - If the Laravel app required a `.env` file, it could be securely stored in Jenkins and passed during deployment.
+- **Infrastructure state management**:
+  - Define resources as code using Terraform or similar, storing state in a DO Space/bucket.  
+  - For this challenge, using `doctl` inside Jenkins was sufficient and simpler.
+- **CI/CD Enhancements**:
+  - Add automated tests before building images.
+  - Implement health checks with auto-rollback on failed deployments.
 
-```sh
-# On Ubuntu / Debian
-sudo snap install doctl
-# Or, if you use Homebrew (macOS/Linux):
-brew install doctl
-```
+---
 
-Verify installation:
-
-```sh
-doctl version
-```
-
-### 2. Login to DigitalOcean
-
-First, generate a Personal Access Token (PAT) at:
-👉 https://cloud.digitalocean.com/account/api/tokens
-
-Then log in:
-
-```sh
-doctl auth init
-# Paste the token when prompted
-```
-
-Verify account access:
-
-```sh
-doctl account get
-```
-
-### 3. Create a Droplet
-
-Create a new droplet (VM) for deployment using the DigitalOcean CLI. Example:
-
-```sh
-# Create a droplet named 'laravel-deploy' in region 'nyc3' with Ubuntu 22.04 and your SSH key
-doctl compute droplet create laravel-deploy \
-    --region nyc3 \
-    --image ubuntu-22-04-x64 \
-    --size s-1vcpu-1gb \
-    --ssh-keys <your_ssh_key_id>
-```
-
-Replace <your_ssh_key_id> with the ID or fingerprint of your SSH key (see doctl compute ssh-key list). Adjust region, size, and name as needed.
-
-Get ssh keys on DO with:
-
-```sh
-doctl compute ssh-key list
-```
-
-List droplets:
-
-```sh
-doctl compute droplet list
-```
-
-Delete a droplet:
-
-```sh
-doctl compute droplet delete <droplet_id>
-```
-
-This allows you to quickly create and destroy deployment VMs as needed for your CI/CD pipeline.
-
-### 4. Access the Droplet
-
-Get the public IP of your droplet:
-
-```sh
-doctl compute droplet list
-```
-
-SSH into the droplet:
-
-```sh
-ssh root@<droplet_ip>
-```
-
-### 6. Using SSH Keys in Jenkins
-
-To use SSH keys for deployment in Jenkins:
-
-1. Go to **Manage Jenkins** > **Manage Credentials** > (global) > **Add Credentials**.
-2. Choose **SSH Username with private key**.
-3. Username: `root` (or your droplet user)
-4. Private Key: Enter directly or from file (paste your private key, not the public one).
-5. ID: `do-ssh-key`
-6. Use this ID in the pipeline as shown in the Jenkinsfile.
-
-
-### 7. Install Docker on the Droplet
-
-SSH into your droplet and run:
-
-```sh
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io
-
-systemctl enable docker
-systemctl start docker
-
-docker --version
-```
+👉 With this setup, the project provides a **simple but production-ready pipeline** for Laravel on DigitalOcean, while leaving room for scalability and automation improvements.

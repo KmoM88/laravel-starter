@@ -45,7 +45,7 @@ pipeline {
                         echo '${env.REGISTRY_CREDS_PSW}' | docker login ${env.REGISTRY} -u '${env.REGISTRY_CREDS_USR}' --password-stdin && \
                         docker pull ${env.REGISTRY}/${env.IMAGE_NAME}:${env.GIT_SHA} && \
                         docker stop hello || true && docker rm hello || true && \
-                        docker run -d --name hello -p 80:80 \
+                        docker run -d --name hello -p 80:8080 \
                           -e APP_ENV=production \
                           -e BUILD_SHA=\${GIT_SHA} -e BUILD_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
                           --restart unless-stopped \

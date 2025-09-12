@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         DOCTL_TOKEN = credentials('DO-token')
+        SSH_KEY = credentials('do-ssh-key')
         DROPLET_NAME = "laravel-deploy"
         SSH_KEY_NAME = "JenkisDeploy"
         REGION = "nyc3"
@@ -61,7 +62,7 @@ pipeline {
 
                     for (int i = 1; i <= maxRetries; i++) {
                         try {
-                            sh "ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} 'echo OK'"
+                            sh "ssh -i ${SSH_KEY} -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${SSH_USER}@${dropletIP} 'echo OK'"
                             reachable = true
                             echo "Droplet disponible después de ${i} intentos."
                             break

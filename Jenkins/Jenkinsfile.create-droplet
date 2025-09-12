@@ -13,7 +13,7 @@ pipeline {
         stage('Create Droplet and install Docker') {
             steps {
                 script {
-                    sh "doctl auth init -t ${DOCTL_TOKEN}"
+                    sh "doctl auth init -t ${DOCTL_TOKEN_PSW}"
                     
                     // Verificar si el droplet ya existe
                     def exists = sh(

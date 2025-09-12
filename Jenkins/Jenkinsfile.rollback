@@ -53,13 +53,17 @@ pipeline {
 		stage('Rollback en el droplet') {
 			steps {
 				script {
+					def container = env.CONTAINER_NAME
+					def registry = env.DOCKER_REGISTRY
+					def image = env.IMAGE_NAME
+					def tag = env.PREV_TAG
+
 					sh """
-					ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
-						docker stop $CONTAINER_NAME || true
-						docker rm $CONTAINER_NAME || true
-						docker pull $DOCKER_REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
-						docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
-					'
+					ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \\
+					"docker stop ${container} || true &&
+					docker rm ${container} || true &&
+					docker pull ${registry}/${image}:${tag} &&
+					docker run -d --name ${container} -p 80:8080 --restart unless-stopped ${registry}/${image}:${tag}"
 					"""
 				}
 			}

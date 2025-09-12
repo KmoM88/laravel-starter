@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_REGISTRY = "registry.digitalocean.com/tierone"
+        IMAGE_NAME = "laravel-prod"
+        SSH_USER = "root"
+        SSH_HOST = "134.209.37.24"
+        SSH_KEY = credentials('do-ssh-key')
+    }
+    stages {
+        stage('Obtener tag actual en el droplet') {
+            steps {
+                script {
+                    CURRENT_TAG = sh(
+                        script: "ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST 'docker ps --filter name=$IMAGE_NAME -q | xargs docker inspect --format=\"{{.Config.Image}}\"'",
+                        returnStdout: true
+                    ).trim()
+                    echo "Tag actual: ${CURRENT_TAG}"
+                }
+            }
+        }
+        // stage('Buscar tag previo en el registry') {
+        //     steps {
+        //         script {
+        //             // Lista los tags en el registry y selecciona el anterior al actual
+        //             // Requiere doctl instalado y autenticado en Jenkins
+        //             sh '''
+        //             doctl registry login
+        //             TAGS=$(doctl registry repository list-tags $IMAGE_NAME --output json | jq -r '.[].tag' | sort -Vr)
+        //             echo "$TAGS" > tags.txt
+        //             '''
+        //             TAGS = readFile('tags.txt').split('\n')
+        //             def currentTagShort = env.CURRENT_TAG.tokenize(':')[-1]
+        //             def prevTag = null
+        //             for (int i = 0; i < TAGS.size(); i++) {
+        //                 if (TAGS[i] == currentTagShort && i+1 < TAGS.size()) {
+        //                     prevTag = TAGS[i+1]
+        //                     break
+        //                 }
+        //             }
+        //             if (!prevTag) {
+        //                 error("No se encontró un tag previo para rollback.")
+        //             }
+        //             env.PREV_TAG = prevTag
+        //             echo "Tag previo: ${env.PREV_TAG}"
+        //         }
+        //     }
+        // }
+        // stage('Rollback en el droplet') {
+        //     steps {
+        //         script {
+        //             // Detiene y elimina el contenedor actual, luego ejecuta el anterior
+        //             sh '''
+        //             ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
+        //                 docker stop laravel-starter-prod || true
+        //                 docker rm laravel-starter-prod || true
+        //                 docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$PREV_TAG
+        //                 docker run -d --name laravel-starter-prod -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:$PREV_TAG
+        //             '
+        //             '''
+        //         }
+        //     }
+        // }
+    }
+}

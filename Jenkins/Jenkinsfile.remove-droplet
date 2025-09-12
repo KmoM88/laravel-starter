@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    environment {
+        DOCTL_TOKEN = credentials('DO-token')
+        DROPLET_NAME = "laravel-deploy"
+    }
+    stages {
+        stage('Eliminar Droplet') {
+            steps {
+                script {
+                    sh "doctl auth init -t ${DOCTL_TOKEN_PSW}"
+
+                    def dropletID = sh(
+                        script: "doctl compute droplet list --format ID,Name --no-header | grep -w ${DROPLET_NAME} | awk '{print \$1}' || true",
+                        returnStdout: true
+                    ).trim()
+
+                    if (!dropletID) {
+                        echo "No se encontró el droplet '${DROPLET_NAME}'. Nada que eliminar."
+                    } else {
+                        echo "Eliminando droplet '${DROPLET_NAME}' (ID: ${dropletID})..."
+                        sh "doctl compute droplet delete ${dropletID} --force"
+                        echo "Droplet '${DROPLET_NAME}' eliminado correctamente."
+                    }
+                }
+            }
+        }
+    }
+}

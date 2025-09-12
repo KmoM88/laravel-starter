@@ -5,7 +5,6 @@ pipeline {
         IMAGE_NAME = "laravel-prod"
         REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
-        DROPLET_HOST = "134.209.37.24"
         REMOTE_USER = "root"
     }
     stages {
@@ -38,6 +37,18 @@ pipeline {
                 sh 'docker push $REGISTRY/$IMAGE_NAME:latest'
             }
         }
+		stage('Get Droplet IP') {
+			steps {
+				script {
+					sh "doctl auth init -t ${DOCTL_TOKEN_PSW}"
+					env.DROPLET_HOST = sh(
+						script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
+						returnStdout: true
+					).trim()
+					echo "Droplet IP: ${env.DROPLET_HOST}"
+				}
+			}
+		}
         stage('Deploy to Droplet via SSH') {
             steps {
                 script {

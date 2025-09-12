@@ -32,7 +32,7 @@ pipeline {
 				script {
 					def currentTag = env.currentTag ?: 'latest'
 					sh '''
-						doctl registry repository list-tags $IMAGE_NAME --output json | jq -r '.tags[].tag' | sort -Vr > tags.txt
+						doctl registry repository list-tags $IMAGE_NAME --output json | jq -r '.[].tag' | sort -Vr > tags.txt
 					'''
 					def tags = readFile('tags.txt').split('\n')
 					def prevTag = null

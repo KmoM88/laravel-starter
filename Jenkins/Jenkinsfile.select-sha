@@ -4,7 +4,7 @@ pipeline {
         string(name: 'TARGET_SHA', defaultValue: 'latest', description: 'SHA/tag de la imagen a desplegar')
     }
     environment {
-        DOCKER_REGISTRY = "registry.digitalocean.com/tierone"
+        REGISTRY = "registry.digitalocean.com/tierone"
         CONTAINER_NAME = "laravel-app"
         IMAGE_NAME = "laravel-prod"
         SSH_USER = "root"
@@ -57,10 +57,10 @@ pipeline {
                         echo "Deteniendo container actual..."
                         docker stop $CONTAINER_NAME || true
                         docker rm $CONTAINER_NAME || true
-                        echo "Extrayendo imagen $DOCKER_REGISTRY/$IMAGE_NAME:$tag..."
-                        docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$tag
+                        echo "Extrayendo imagen $REGISTRY/$IMAGE_NAME:$tag..."
+                        docker pull $REGISTRY/$IMAGE_NAME:$tag
                         echo "Corriendo nueva versión..."
-                        docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:$tag
+                        docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $REGISTRY/$IMAGE_NAME:$tag
                     '
                     """
                 }

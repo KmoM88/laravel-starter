@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REGISTRY = "registry.digitalocean.com/tierone"
+        REGISTRY = "registry.digitalocean.com/tierone"
         CONTAINER_NAME = "laravel-app"
         IMAGE_NAME = "laravel-prod"
         SSH_USER = "root"
@@ -67,8 +67,8 @@ pipeline {
 					ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$env.DROPLET_HOST '
 						docker stop $CONTAINER_NAME || true
 						docker rm $CONTAINER_NAME || true
-						docker pull $DOCKER_REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
-						docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
+						docker pull $REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
+						docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
 					'
 					"""
 				}

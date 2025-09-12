@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCTL_TOKEN = credentials('DO-token')
+        REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
         DROPLET_NAME = "laravel-deploy"
         SSH_KEY_NAME = "JenkisDeploy"
@@ -14,7 +14,7 @@ pipeline {
         stage('Crear Droplet') {
             steps {
                 script {
-                    sh "doctl auth init -t ${DOCTL_TOKEN_PSW}"
+                    sh "doctl auth init -t ${REGISTRY_CREDS_PSW}"
                     def exists = sh(
                         script: "doctl compute droplet list --format Name --no-header | grep -w ${DROPLET_NAME} || true",
                         returnStdout: true

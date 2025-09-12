@@ -3,9 +3,9 @@ pipeline {
     environment {
         REGISTRY = "registry.digitalocean.com/tierone"
         IMAGE_NAME = "laravel-prod"
+        SSH_USER = "root"
         REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
-        REMOTE_USER = "root"
     }
     stages {
         stage('Checkout') {
@@ -62,7 +62,7 @@ pipeline {
                           --restart unless-stopped \
                           ${env.REGISTRY}/${env.IMAGE_NAME}:${env.GIT_SHA}
                     """.stripIndent()
-                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SSH_KEY} ${env.REMOTE_USER}@${env.DROPLET_HOST} '${deployCmd}'"
+                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SSH_KEY} ${env.SSH_USER}@${env.DROPLET_HOST} '${deployCmd}'"
                 }
             }
         }

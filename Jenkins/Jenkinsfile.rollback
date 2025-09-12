@@ -51,18 +51,18 @@ pipeline {
 			}
 		}
 		stage('Rollback en el droplet') {
-            steps {
-                script {
-                    sh '''
-                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
-                        docker stop $CONTAINER_NAME || true
-                        docker rm $CONTAINER_NAME || true
-                        docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$env.PREV_TAG
-                        docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:$env.PREV_TAG
-                    '
-                    '''
-                }
-            }
-        }
+			steps {
+				script {
+					sh """
+					ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
+						docker stop $CONTAINER_NAME || true
+						docker rm $CONTAINER_NAME || true
+						docker pull $DOCKER_REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
+						docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
+					'
+					"""
+				}
+			}
+		}
     }
 }

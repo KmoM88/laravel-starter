@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY = "registry.digitalocean.com/tierone"
+        IMAGE_NAME = "laravel-prod"
+        SSH_USER = "root"
+        REGISTRY_CREDS = credentials('DO-token')
+        SSH_KEY = credentials('do-ssh-key')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Get Git SHA') {
+            steps {
+                script {
+                    GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    env.GIT_SHA = GIT_SHA
+                }
+            }
+        }
+        stage('Build Production Image') {
+            steps {
+                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$GIT_SHA -t $REGISTRY/$IMAGE_NAME:latest -f dockerfiles/Dockerfile.prod .'
+            }
+        }
+        stage('Login to DigitalOcean Registry') {
+            steps {
+                sh 'echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USR --password-stdin'
+            }
+        }
+        stage('Push Images to Registry') {
+            steps {
+                sh 'docker push $REGISTRY/$IMAGE_NAME:$GIT_SHA'
+                sh 'docker push $REGISTRY/$IMAGE_NAME:latest'
+            }
+        }
+		stage('Get Droplet IP') {
+			steps {
+				script {
+					sh "doctl auth init -t ${REGISTRY_CREDS_PSW}"
+					env.DROPLET_HOST = sh(
+						script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
+						returnStdout: true
+					).trim()
+					echo "Droplet IP: ${env.DROPLET_HOST}"
+				}
+			}
+		}
+        stage('Deploy to Droplet via SSH') {
+            steps {
+                script {
+                    def deployCmd = """
+                        echo '${env.REGISTRY_CREDS_PSW}' | docker login ${env.REGISTRY} -u '${env.REGISTRY_CREDS_USR}' --password-stdin && \
+                        docker pull ${env.REGISTRY}/${env.IMAGE_NAME}:${env.GIT_SHA} && \
+                        docker stop laravel-app || true && docker rm laravel-app || true && \
+                        docker run -d --name laravel-app -p 80:8080 \
+                          -e APP_ENV=production \
+                          -e BUILD_SHA=\${GIT_SHA} -e BUILD_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
+                          --restart unless-stopped \
+                          ${env.REGISTRY}/${env.IMAGE_NAME}:${env.GIT_SHA}
+                    """.stripIndent()
+                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SSH_KEY} ${env.SSH_USER}@${env.DROPLET_HOST} '${deployCmd}'"
+                }
+            }
+        }
+    }
+}

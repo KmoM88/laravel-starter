@@ -79,19 +79,22 @@ Deploy the provided Laravel 11 Hello World API as a single Docker container to p
 ## 1. Dockerfile.dev (for local testing)
 - Enables local development and testing using Laravel's built-in server.
 - Commands:
-  ```sh
-  docker build -t laravel-dev -f dockerfiles/Dockerfile.dev .
-  docker run --rm -it -p 8000:8000 laravel-dev
-  ```
+
+```sh
+docker build -t laravel-dev -f dockerfiles/Dockerfile.dev .
+docker run --rm -it -p 8000:8000 laravel-dev
+```
+
 ## 2. Dockerfile.prod and configuration files
 - Multi-stage: separates dependency installation (builder) from the runtime environment, resulting in a smaller and more secure image.
 - Includes nginx and php-fpm configuration to serve Laravel from `/public`.
 - **Non-root execution:** The container is designed so that php-fpm and nginx worker processes run as the non-root user `www-data`, while the nginx master process starts as root (required to bind to port 80) and then drops privileges. This setup meets the challenge requirement of not running the application as root, while ensuring nginx can function properly in a containerized environment.
 - Commands:
-  ```sh
-  docker build -t laravel-prod -f dockerfiles/Dockerfile.prod .
-  docker run --rm -it -p 8080:80 laravel-prod
-  ```
+
+```sh
+docker build -t laravel-prod -f dockerfiles/Dockerfile.prod .
+docker run --rm -it -p 8080:8080 laravel-prod
+```
 
 - Configuration files:
   - `nginx/nginx.conf`: nginx configuration to serve the app (includes `user www-data;` for non-root workers)

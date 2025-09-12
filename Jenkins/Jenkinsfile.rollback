@@ -21,8 +21,8 @@ pipeline {
                     ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \
 						"docker inspect --format='{{.Config.Image}}' $CONTAINER_NAME | cut -d: -f2"
 					'''
-					def currentTag = sh(script: cmd, returnStdout: true).trim()
-					echo "Tag actual: ${currentTag}"
+					def env.currentTag = sh(script: cmd, returnStdout: true).trim()
+					echo "Tag actual: ${env.currentTag}"
                 }
             }
         }
@@ -37,7 +37,7 @@ pipeline {
                         currentTag = 'latest'
                     }
                     sh '''
-                        doctl registry repository list-tags $CONTAINER_NAME --output json | jq -r '.[].tag' | sort -Vr > tags.txt
+                        doctl registry repository list-tags $CONTAINER_NAME --output json | jq -r '.tags[].tag' | sort -Vr > tags.txt
                     '''
                     def tags = readFile('tags.txt').split('\n')
                     def prevTag = null

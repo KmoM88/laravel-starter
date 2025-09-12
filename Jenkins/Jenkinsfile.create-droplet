@@ -85,7 +85,10 @@ pipeline {
 
 					echo "Instalando Docker en ${dropletIP}..."
 					def installDockerCmd = """
-					sleep 60
+					while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+                        echo "Otro proceso de apt está corriendo, esperando 5 segundos..."
+                        sleep 5
+                    done
 					apt-get update
 					apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 					curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --batch -o /usr/share/keyrings/docker-archive-keyring.gpg

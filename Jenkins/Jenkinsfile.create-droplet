@@ -83,7 +83,7 @@ pipeline {
                 script {
 					def dropletIP = env.DROPLET_IP
 
-					writeFile file: 'jenkins_ssh_key', text: env.SSH_KEY_PSW
+					writeFile file: 'jenkins_ssh_key', text: env.SSH_KEY
 					sh 'chmod 600 jenkins_ssh_key'
 
 					echo "Instalando Docker en ${dropletIP}..."

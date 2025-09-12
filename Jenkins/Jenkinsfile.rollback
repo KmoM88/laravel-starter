@@ -11,11 +11,12 @@ pipeline {
         stage('Obtener tag actual en el droplet') {
             steps {
                 script {
-                    CURRENT_TAG = sh(
-                        script: "ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST 'docker inspect --format='{{index .Config.Image}}' $CONTAINER_NAME | cut -d: -f2'",
-                        returnStdout: true
-                    ).trim()
-                    echo "Tag actual: ${CURRENT_TAG}"
+					def cmd = '''
+                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \
+						"docker inspect --format='{{.Config.Image}}' $CONTAINER_NAME | cut -d: -f2"
+					'''
+					def currentTag = sh(script: cmd, returnStdout: true).trim()
+					echo "Tag actual: ${currentTag}"
                 }
             }
         }

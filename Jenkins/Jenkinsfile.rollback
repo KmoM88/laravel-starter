@@ -11,6 +11,7 @@ pipeline {
     stages {
         stage('Login doctl') {
             steps {
+				sh 'snap install doctl'
                 sh 'doctl auth init -t $REGISTRY_CREDS_PSW'
             }
         }

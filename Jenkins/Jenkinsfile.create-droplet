@@ -14,36 +14,32 @@ pipeline {
             steps {
                 script {
                     sh "doctl auth init -t ${DOCTL_TOKEN_PSW}"
-                    
-                    // Verificar si el droplet ya existe
                     def exists = sh(
                         script: "doctl compute droplet list --format Name --no-header | grep -w ${DROPLET_NAME} || true",
                         returnStdout: true
                     ).trim()
 
-                    // if (exists) {
-                    //     echo "Droplet '${DROPLET_NAME}' already exists. Skipping creation."
-                    // } else {
-                    //     // Obtener ID de la key con nombre JenkisDeploy
-                    //     def keyId = sh(
-                    //         script: "doctl compute ssh-key list --output json | jq -r '.[] | select(.name==\"${SSH_KEY_NAME}\") | .id'",
-                    //         returnStdout: true
-                    //     ).trim()
+                    if (exists) {
+                        echo "Droplet '${DROPLET_NAME}' already exists. Skipping creation."
+                    } else {
+                        def keyId = sh(
+                            script: "doctl compute ssh-key list --output json | jq -r '.[] | select(.name==\"${SSH_KEY_NAME}\") | .id'",
+                            returnStdout: true
+                        ).trim()
 
-                    //     if (!keyId) {
-                    //         error "SSH Key '${SSH_KEY_NAME}' not found in DigitalOcean."
-                    //     }
+                        if (!keyId) {
+                            error "SSH Key '${SSH_KEY_NAME}' not found in DigitalOcean."
+                        }
 
-                    //     // Crear el droplet
-                    //     sh """
-                    //         doctl compute droplet create ${DROPLET_NAME} \\
-                    //             --region ${REGION} \\
-                    //             --image ${IMAGE} \\
-                    //             --size ${SIZE} \\
-                    //             --ssh-keys ${keyId} \\
-                    //             --wait
-                    //     """
-                    //     echo "Droplet '${DROPLET_NAME}' created successfully."
+                        sh """
+                            doctl compute droplet create ${DROPLET_NAME} \\
+                                --region ${REGION} \\
+                                --image ${IMAGE} \\
+                                --size ${SIZE} \\
+                                --ssh-keys ${keyId} \\
+                                --wait
+                        """
+                        echo "Droplet '${DROPLET_NAME}' created successfully."
 
                     //     // Obtener IP pública del droplet
                     //     def dropletIP = sh(
@@ -68,7 +64,7 @@ pipeline {
                     //         '
                     //     """
                     //     echo "Docker installation completed on ${dropletIP}"
-                    // }
+                    }
                 }
             }
         }

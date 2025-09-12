@@ -50,20 +50,19 @@ pipeline {
 				}
 			}
 		}
-		// stage('Rollback en el droplet') {
-        //     steps {
-        //         script {
-        //             // Detiene y elimina el contenedor actual, luego ejecuta el anterior
-        //             sh '''
-        //             ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
-        //                 docker stop laravel-starter-prod || true
-        //                 docker rm laravel-starter-prod || true
-        //                 docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$PREV_TAG
-        //                 docker run -d --name laravel-starter-prod -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:$PREV_TAG
-        //             '
-        //             '''
-        //         }
-        //     }
-        // }
+		stage('Rollback en el droplet') {
+            steps {
+                script {
+                    sh '''
+                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST '
+                        docker stop $CONTAINER_NAME || true
+                        docker rm $CONTAINER_NAME || true
+                        docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$env.PREV_TAG
+                        docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $DOCKER_REGISTRY/$IMAGE_NAME:$env.PREV_TAG
+                    '
+                    '''
+                }
+            }
+        }
     }
 }

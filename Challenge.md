@@ -112,7 +112,7 @@ docker run --rm -it -p 8080:8080 laravel-prod
 
 - Configuration files:
   - `nginx/nginx.conf`: nginx configuration to serve the app
-  - `nginx/supervisord.conf` (supervisord is used, though migrating to one process per container is recommended for the future duw to deprecation of supervisord in the near future)
+  - `nginx/supervisord.conf` (supervisord is used, though migrating to one process per container is recommended for the future due to deprecation of supervisord in the near future)
 
 ---
 

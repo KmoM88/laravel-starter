@@ -8,7 +8,7 @@ pipeline {
         SSH_KEY        = credentials('do-ssh-key')
     }
     triggers {
-        cron('H/2 * * * *')
+        cron('*/10 * * * *')
     }
     stages {
         stage('Get Droplet IP') {

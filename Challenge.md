@@ -203,6 +203,9 @@ docker compose up -d
   1. **DigitalOcean API Token**
   2. **SSH private key** for droplet connection
 - The Jenkins user must have access to the Docker daemon (usually by being in the `docker` group).
+- Some of the pipelines failed the first time testing with doctl smalles droplet 
+- A volume can be deployed to save config safely and spin up jenkins server with all the plugins and config automaticaly.
+- Add pipelines via jenkins API 
 - TODO: Jenkis must be initialized with the required plugins:
   - Docker Pipeline
   - SSH Agent
@@ -210,6 +213,8 @@ docker compose up -d
   - Git
   - Pipeline
   - User and Role-based Authorization Strategy (for better security)
+  - Con uso aproximado ajustar seleccion de droplet y cantidad de containers segun carga
+  - Aproximar billing mensual pordroplet
 
 ---
 
@@ -235,6 +240,8 @@ docker compose up -d
   - Set up separate environments (staging, production) with different droplets and registries.
   - Implement blue-green deployments or canary releases for zero-downtime updates.
   - Testing pyramid with unit, integration, and end-to-end tests up to stages dev/test/prod/deploy.
+- **DO Droplet Image**:
+  - Ubuntu 44.04 was used with least resources available on NYC3 region (1vCPU, 1GB RAM, 25GB SSD, $4/month).
 
 ---
 

@@ -11,6 +11,7 @@ pipeline {
                 checkout scm
             }
         }
+
         stage('Get Git SHA') {
             steps {
                 script {
@@ -19,17 +20,42 @@ pipeline {
                 }
             }
         }
+
+        stage('Check if Image Exists') {
+            steps {
+                script {
+                    sh "echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USR --password-stdin"
+
+                    def imageExists = sh(
+                        script: "docker manifest inspect $REGISTRY/$IMAGE_NAME:$GIT_SHA > /dev/null 2>&1 && echo true || echo false",
+                        returnStdout: true
+                    ).trim()
+
+                    if (imageExists == "true") {
+                        echo "✅ Image $REGISTRY/$IMAGE_NAME:$GIT_SHA already exists. Skipping build and push."
+                        currentBuild.result = 'SUCCESS'
+                        env.SKIP_BUILD = "true"
+                    } else {
+                        echo "⏳ Image $REGISTRY/$IMAGE_NAME:$GIT_SHA does not exist. Proceeding with build."
+                        env.SKIP_BUILD = "false"
+                    }
+                }
+            }
+        }
+
         stage('Build Production Image') {
+            when {
+                expression { env.SKIP_BUILD == "false" }
+            }
             steps {
                 sh 'docker build -t $REGISTRY/$IMAGE_NAME:$GIT_SHA -t $REGISTRY/$IMAGE_NAME:latest -f dockerfiles/Dockerfile.prod .'
             }
         }
-        stage('Login to DigitalOcean Registry') {
-            steps {
-                sh 'echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USR --password-stdin'
-            }
-        }
+
         stage('Push Images to Registry') {
+            when {
+                expression { env.SKIP_BUILD == "false" }
+            }
             steps {
                 sh 'docker push $REGISTRY/$IMAGE_NAME:$GIT_SHA'
                 sh 'docker push $REGISTRY/$IMAGE_NAME:latest'

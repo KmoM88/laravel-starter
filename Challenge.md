@@ -188,6 +188,17 @@ docker compose up -d
 - The Jenkins image requires instalation of (docker-compose/Dockerfile.jenkins):
   - `doctl` (DigitalOcean CLI)
   - `jq` (for parsing JSON responses)
+  - Commands:
+    ```sh
+    docker build -t jenkins-tierone -f Dockerfile.jenkins .
+    docker run -d \
+              --name jenkins \
+              -u root \
+              -p 8080:8080 -p 50000:50000 \
+              -v /var/jenkins_home:/var/jenkins_home \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              jenkins-tierone:latest
+    ```
 - Two secrets must be stored in Jenkins credentials:
   1. **DigitalOcean API Token**
   2. **SSH private key** for droplet connection

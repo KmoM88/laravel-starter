@@ -24,6 +24,7 @@ pipeline {
         stage('Check if Image Exists') {
             steps {
                 script {
+                    // Login primero para poder inspeccionar el registry privado
                     sh "echo $REGISTRY_CREDS_PSW | docker login $REGISTRY -u $REGISTRY_CREDS_USR --password-stdin"
 
                     def imageExists = sh(
@@ -33,7 +34,8 @@ pipeline {
 
                     if (imageExists == "true") {
                         echo "✅ Image $REGISTRY/$IMAGE_NAME:$GIT_SHA already exists. Skipping build and push."
-                        currentBuild.result = 'SUCCESS'}
+                        currentBuild.result = 'SUCCESS'
+                        // Saltar los stages de Build y Push
                         env.SKIP_BUILD = "true"
                     } else {
                         echo "⏳ Image $REGISTRY/$IMAGE_NAME:$GIT_SHA does not exist. Proceeding with build."

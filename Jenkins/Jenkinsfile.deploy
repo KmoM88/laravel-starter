@@ -58,7 +58,7 @@ pipeline {
                         docker stop laravel-app || true && docker rm laravel-app || true && \
                         docker run -d --name laravel-app -p 80:8080 \
                           -e APP_ENV=production \
-                          -e BUILD_SHA=\${GIT_SHA} -e BUILD_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
+                          -e BUILD_SHA=\${GIT_SHA} -e CREATED_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
                           --restart unless-stopped \
                           ${env.REGISTRY}/${env.IMAGE_NAME}:${env.GIT_SHA}
                     """.stripIndent()

@@ -29,12 +29,12 @@ pipeline {
                     def checkCmd = """
                         STATUS=\$(docker inspect --format='{{.State.Health.Status}}' laravel-app 2>/dev/null || echo 'notfound')
                         echo "Health status: \$STATUS"
-                        if [ "$STATUS" = "healthy" ] || [ "$STATUS" = "starting" ]; then
-                            echo "✅ laravel-app is $STATUS"
+                        if [ "\$STATUS" = "healthy" ] || [ "\$STATUS" = "starting" ]; then
+                            echo "✅ laravel-app is \$STATUS"
                         else
-                            echo "❌ laravel-app is NOT healthy ($STATUS)" >&2
+                            echo "❌ laravel-app is NOT healthy (\$STATUS)" >&2
                             # guardar log en el droplet
-                            echo "$(date -u) - Container unhealthy ($STATUS)" >> /var/log/laravel-app-health.log
+                            echo "$(date -u) - Container unhealthy (\$STATUS)" >> /var/log/laravel-app-health.log
                             exit 1
                         fi
                     """.stripIndent()

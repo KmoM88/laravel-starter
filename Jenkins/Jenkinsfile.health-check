@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY       = "registry.digitalocean.com/tierone"
+        IMAGE_NAME     = "laravel-prod"
+        SSH_USER       = "root"
+        REGISTRY_CREDS = credentials('DO-token')
+        SSH_KEY        = credentials('do-ssh-key')
+    }
+    triggers {
+        cron('*/10 * * * *')
+    }
+    stages {
+        stage('Get Droplet IP') {
+            steps {
+                script {
+                    sh "doctl auth init -t ${REGISTRY_CREDS_PSW}"
+                    env.DROPLET_HOST = sh(
+                        script: "doctl compute droplet list laravel-deploy --format PublicIPv4 --no-header",
+                        returnStdout: true
+                    ).trim()
+                    echo "Droplet IP: ${env.DROPLET_HOST}"
+                }
+            }
+        }
+        stage('Check Container Health') {
+            steps {
+                script {
+                    def checkCmd = """
+                        STATUS=\$(docker inspect --format='{{.State.Health.Status}}' laravel-app 2>/dev/null || echo 'notfound')
+                        echo "Health status: \$STATUS"
+                        if [ "\$STATUS" = "healthy" ]; then
+                            echo "✅ laravel-app is healthy"
+                        else
+                            echo "❌ laravel-app is NOT healthy (\$STATUS)" >&2
+                            # guardar log en el droplet
+                            echo "\$(date -u) - Container unhealthy (\$STATUS)" >> /var/log/laravel-app-health.log
+                            exit 1
+                        fi
+                    """.stripIndent()
+                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SSH_KEY} ${SSH_USER}@${env.DROPLET_HOST} '${checkCmd}'"
+                }
+            }
+        }
+    }
+    post {
+        failure {
+            echo "⚠️ ALERT: laravel-app container is UNHEALTHY on droplet ${env.DROPLET_HOST}. Triggering redeployment of latest"
+            build job: '03-Build-Deploy', 
+            //   parameters: [
+            //       string(name: 'DROPLET_IP', value: env.DROPLET_HOST),
+            //       string(name: 'CONTAINER', value: 'laravel-app')
+            //   ],
+              wait: true
+        }
+    }
+}

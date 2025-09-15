@@ -215,6 +215,7 @@ docker compose up -d
   - User and Role-based Authorization Strategy (for better security)
   - Con uso aproximado ajustar seleccion de droplet y cantidad de containers segun carga
   - Aproximar billing mensual pordroplet
+  - Make different nodes for jenkins server and build agents
 
 ---
 

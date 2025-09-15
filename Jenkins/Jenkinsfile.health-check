@@ -45,13 +45,13 @@ pipeline {
     }
     post {
         failure {
-            echo "⚠️ ALERT: laravel-app container is UNHEALTHY on droplet ${env.DROPLET_HOST}"
-            // Ejemplo: notificación por email
-            // emailext(
-            //     to: "admin@example.com",
-            //     subject: "ALERT: laravel-app unhealthy",
-            //     body: "The laravel-app container on ${env.DROPLET_HOST} is unhealthy or not found. See /var/log/laravel-app-health.log on the droplet for details."
-            // )
+            echo "⚠️ ALERT: laravel-app container is UNHEALTHY on droplet ${env.DROPLET_HOST}. Triggering redeployment of latest"
+            build job: '03-Build-Deploy', 
+            //   parameters: [
+            //       string(name: 'DROPLET_IP', value: env.DROPLET_HOST),
+            //       string(name: 'CONTAINER', value: 'laravel-app')
+            //   ],
+              wait: true
         }
     }
 }

@@ -34,7 +34,7 @@ pipeline {
                         else
                             echo "❌ laravel-app is NOT healthy (\$STATUS)" >&2
                             # guardar log en el droplet
-                            echo "$(date -u) - Container unhealthy (\$STATUS)" >> /var/log/laravel-app-health.log
+                            echo "\$(date -u) - Container unhealthy (\$STATUS)" >> /var/log/laravel-app-health.log
                             exit 1
                         fi
                     """.stripIndent()

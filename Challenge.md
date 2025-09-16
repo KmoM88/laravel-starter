@@ -220,12 +220,23 @@ For deploying Jenkins, follow these steps:
 
 5. **Generate Job Configs**
    Run `scripts/04-gen-configs.py` to generate XML files from Jenkinsfiles located in the Jenkins path.
+   Usage:
+   ```sh
+   python 04-gen_configs.py \
+  --repo "https://github.com/tu-org/tu-repo.git" \
+  --branch "main" \
+  --path ../Jenkis/
+    ```
 
 6. **Clean Unnecessary XML**
    Delete any XML files that are not needed.
 
 7. **Create Jenkins Jobs**
    Run `scripts/05-create-jobs.py` to load the pipelines into Jenkins.
+   Usage:
+   ```sh
+   python 05-create_jobs.py http://<JENKINS_IP>:<PORT> <USER> <API_TOKEN> /ruta/a/los/xml
+    ```
 
 ## Recommendations
 

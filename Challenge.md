@@ -244,6 +244,7 @@ For deploying Jenkins, follow these steps:
 * Use a persistent volume (`/var/jenkins_home`) to avoid reconfiguring Jenkins each time the container is restarted.
 * Ensure the Jenkins container user has access to the Docker daemon.
 * Manual setup steps are only required for the initial deployment and credential/API key setup.
+* Separate Jenkins server and agents to improve security and scalability.
 
 
 ---

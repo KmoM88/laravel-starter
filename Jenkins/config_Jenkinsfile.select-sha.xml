@@ -19,7 +19,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile.select-sha</scriptPath>
+    <scriptPath>Jenkins/Jenkinsfile.select-sha</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

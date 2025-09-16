@@ -19,7 +19,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile.remove-droplet</scriptPath>
+    <scriptPath>Jenkins/Jenkinsfile.remove-droplet</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

@@ -19,7 +19,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile.create-droplet</scriptPath>
+    <scriptPath>Jenkins/Jenkinsfile.create-droplet</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

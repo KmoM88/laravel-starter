@@ -19,7 +19,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile.rollback</scriptPath>
+    <scriptPath>Jenkins/Jenkinsfile.rollback</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

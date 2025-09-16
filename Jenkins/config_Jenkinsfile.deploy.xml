@@ -19,7 +19,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile.deploy</scriptPath>
+    <scriptPath>Jenkins/Jenkinsfile.deploy</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

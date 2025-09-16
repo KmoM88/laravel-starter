@@ -225,7 +225,7 @@ For deploying Jenkins, follow these steps:
    python 04-gen_configs.py \
   --repo "https://github.com/tu-org/tu-repo.git" \
   --branch "main" \
-  --path ../Jenkis/
+  --path ../Jenkins/
     ```
 
 6. **Clean Unnecessary XML**
@@ -235,7 +235,7 @@ For deploying Jenkins, follow these steps:
    Run `scripts/05-create-jobs.py` to load the pipelines into Jenkins.
    Usage:
    ```sh
-   python 05-create_jobs.py http://<JENKINS_IP>:<PORT> <USER> <API_TOKEN> /ruta/a/los/xml
+   python 05-create_jobs.py http://<JENKINS_IP>:<PORT> <USER> <API_TOKEN> ../Jenkins/
     ```
 
 ## Recommendations
@@ -244,6 +244,7 @@ For deploying Jenkins, follow these steps:
 * Use a persistent volume (`/var/jenkins_home`) to avoid reconfiguring Jenkins each time the container is restarted.
 * Ensure the Jenkins container user has access to the Docker daemon.
 * Manual setup steps are only required for the initial deployment and credential/API key setup.
+* Separate Jenkins server and agents to improve security and scalability.
 
 
 ---

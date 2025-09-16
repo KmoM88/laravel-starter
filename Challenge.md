@@ -256,7 +256,7 @@ For deploying Jenkins, follow these steps:
   - Implement blue-green deployments or canary releases for zero-downtime updates.
   - Testing pyramid with unit, integration, and end-to-end tests up to stages dev/test/prod/deploy.
 - **DO Droplet Image for App**:
-  - Ubuntu 24.04 was used with least resources available on NYC3 region (1vCPU, 1GB RAM, 25GB SSD, $4/month).
+  - Ubuntu 22.04 was used with least resources available on NYC3 region (1vCPU, 1GB RAM, 25GB SSD, $4/month).
 
 ---
 

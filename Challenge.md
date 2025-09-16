@@ -182,7 +182,7 @@ docker compose up -d
 - Deletes the droplet named `laravel-deploy`.
 
 #### `Jenkinsfile.health-check`
-- Checks the health of the deployed container and if it's unhealthy deploys a stable (latest) challenge.
+- Checks the health of the deployed container and if it's unhealthy deploys a stable (latest) container.
 
 ---
 
@@ -261,21 +261,6 @@ For deploying Jenkins, follow these steps:
   - smoke 150:
     - Report k6s:
     ```sh
-            /\      Grafana   /‾‾/  
-        /\  /  \     |\  __   /  /   
-      /  \/    \    | |/ /  /   ‾‾\ 
-      /          \   |   (  |  (‾)  |
-    / __________ \  |_|\_\  \_____/ 
-
-        execution: local
-            script: load-test.js
-            output: -
-
-        scenarios: (100.00%) 1 scenario, 150 max VUs, 45s max duration (incl. graceful stop):
-                  * smoke_test_150: 150 looping VUs for 15s (exec: smoke, gracefulStop: 30s)
-
-
-
       █ TOTAL RESULTS 
 
         HTTP

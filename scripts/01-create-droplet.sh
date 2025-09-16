@@ -5,7 +5,7 @@ set -euo pipefail
 SSH_KEY_NAME="FedericoRossi"
 DROPLET_NAME="jenkins-server-agent-auto"
 REGION="nyc3"
-SIZE="s-2vcpu-2gb-90gb-intel"
+SIZE="s-1vcpu-2gb"
 IMAGE="ubuntu-22-04-x64"
 
 # 1. Obtener ID de la key

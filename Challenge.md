@@ -225,7 +225,7 @@ For deploying Jenkins, follow these steps:
    python 04-gen_configs.py \
   --repo "https://github.com/tu-org/tu-repo.git" \
   --branch "main" \
-  --path ../Jenkis/
+  --path ../Jenkins/
     ```
 
 6. **Clean Unnecessary XML**
@@ -235,7 +235,7 @@ For deploying Jenkins, follow these steps:
    Run `scripts/05-create-jobs.py` to load the pipelines into Jenkins.
    Usage:
    ```sh
-   python 05-create_jobs.py http://<JENKINS_IP>:<PORT> <USER> <API_TOKEN> /ruta/a/los/xml
+   python 05-create_jobs.py http://<JENKINS_IP>:<PORT> <USER> <API_TOKEN> ../Jenkins/
     ```
 
 ## Recommendations

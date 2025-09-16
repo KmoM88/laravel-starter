@@ -181,41 +181,59 @@ docker compose up -d
 #### `Jenkinsfile.remove-droplet`
 - Deletes the droplet named `laravel-deploy`.
 
+#### `Jenkinsfile.health-check`
+- Checks the health of the deployed container and if it's unhealthy deploys a stable (latest) challenge.
+
 ---
 
 ## 3. Jenkins Configuration
 
-- The Jenkins image requires instalation of (docker-compose/Dockerfile.jenkins):
-  - `doctl` (DigitalOcean CLI)
-  - `jq` (for parsing JSON responses)
-  - Commands:
-    ```sh
-    docker build -t jenkins-tierone -f Dockerfile.jenkins .
-    docker run -d \
-              --name jenkins \
-              -u root \
-              -p 8080:8080 -p 50000:50000 \
-              -v /var/jenkins_home:/var/jenkins_home \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              jenkins-tierone:latest
-    ```
-- Two secrets must be stored in Jenkins credentials:
-  1. **DigitalOcean API Token**
-  2. **SSH private key** for droplet connection
-- The Jenkins user must have access to the Docker daemon (usually by being in the `docker` group).
-- Some of the pipelines failed the first time testing with doctl smalles droplet 
-- A volume can be deployed to save config safely and spin up jenkins server with all the plugins and config automaticaly.
-- Add pipelines via jenkins API 
-- TODO: Jenkis must be initialized with the required plugins:
-  - Docker Pipeline
-  - SSH Agent
-  - Credentials Binding
-  - Git
-  - Pipeline
-  - User and Role-based Authorization Strategy (for better security)
-  - Con uso aproximado ajustar seleccion de droplet y cantidad de containers segun carga
-  - Aproximar billing mensual pordroplet
-  - Make different nodes for jenkins server and build agents
+For deploying Jenkins, follow these steps:
+
+1. **Create Droplet**
+   Run `scripts/01-create-droplet.sh` to launch a new DigitalOcean instance.
+
+2. **Setup Droplet**
+   Run `scripts/02-setup-droplet.sh` to install Docker and the tools required for the Jenkins image.
+
+3. **Deploy Jenkins**
+   Run `scripts/03-deploy-jenkins.sh` which will copy `docker-compose/Dockerfile.jenkins` to the droplet, build the Jenkins Docker image, and run the container:
+
+   ```sh
+   docker build -t jenkins-tierone -f Dockerfile.jenkins .
+   docker run -d \
+             --name jenkins \
+             -u root \
+             -p 8080:8080 -p 50000:50000 \
+             -v /var/jenkins_home:/var/jenkins_home \
+             -v /var/run/docker.sock:/var/run/docker.sock \
+             jenkins-tierone:latest
+   ```
+
+4. **Initial Jenkins Setup (Manual)**
+
+   * Set the admin password.
+   * Install default plugins.
+   * Create admin user `tierone`.
+   * Add credentials: `DO-token` and `do-ssh-key`.
+   * Generate an API token to allow pipeline uploads via the Jenkins API.
+
+5. **Generate Job Configs**
+   Run `scripts/04-gen-configs.py` to generate XML files from Jenkinsfiles located in the Jenkins path.
+
+6. **Clean Unnecessary XML**
+   Delete any XML files that are not needed.
+
+7. **Create Jenkins Jobs**
+   Run `scripts/05-create-jobs.py` to load the pipelines into Jenkins.
+
+## Recommendations
+
+* Always back up your Jenkins configuration.
+* Use a persistent volume (`/var/jenkins_home`) to avoid reconfiguring Jenkins each time the container is restarted.
+* Ensure the Jenkins container user has access to the Docker daemon.
+* Manual setup steps are only required for the initial deployment and credential/API key setup.
+
 
 ---
 
@@ -226,23 +244,19 @@ docker compose up -d
   - SSH user (`root`).
   - Container/registry/image names.  
   These can be parameterized for multiple environments (dev/test/prod).
-- **Remote Jenkins**:
-  - Instead of running Jenkins locally, a dedicated droplet could manage pipelines. The image build for the docker compose setup could be pushed to DOCR and used in a remote Jenkins instance. Should add jq and doctl installation steps in the Jenkinsfile.
 - **Environment variables**:
   - If the Laravel app required a `.env` file, it could be securely stored in Jenkins and passed during deployment.
 - **Infrastructure state management**:
   - Define resources as code using Terraform or similar, storing state in a DO Space/bucket.  
   - For this challenge, using `doctl` inside Jenkins was sufficient and simpler.
 - **CI/CD Enhancements**:
-  - Add automated tests before building images.
-  - Implement health checks with auto-rollback on failed deployments.
-  - Deploy the jenkis server with script and spin up the pipelines automaticaly (Load ). 
+  - Add automated tests after building images.
 - **Environments & Testing**:
   - Set up separate environments (staging, production) with different droplets and registries.
   - Implement blue-green deployments or canary releases for zero-downtime updates.
   - Testing pyramid with unit, integration, and end-to-end tests up to stages dev/test/prod/deploy.
-- **DO Droplet Image**:
-  - Ubuntu 44.04 was used with least resources available on NYC3 region (1vCPU, 1GB RAM, 25GB SSD, $4/month).
+- **DO Droplet Image for App**:
+  - Ubuntu 22.04 was used with least resources available on NYC3 region (1vCPU, 1GB RAM, 25GB SSD, $4/month).
 
 ---
 

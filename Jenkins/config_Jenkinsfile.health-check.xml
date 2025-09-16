@@ -19,7 +19,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile.health-check</scriptPath>
+    <scriptPath>Jenkins/Jenkinsfile.health-check</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

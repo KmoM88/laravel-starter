@@ -58,8 +58,9 @@ def main():
         sys.exit(1)
 
     for jf in jenkinsfiles:
-        jf_path = jf
-        xml_content = generate_config_xml(args.repo, args.branch, jf_path)
+        full_path = os.path.join(args.path, jf)
+        rel_path = os.path.relpath(full_path, start=os.getcwd())  
+        xml_content = generate_config_xml(args.repo, args.branch, rel_path)
 
         out_file = os.path.join(args.path, f"config_{jf}.xml")
         with open(out_file, "w") as f:

@@ -19,7 +19,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile.registry</scriptPath>
+    <scriptPath>Jenkins/Jenkinsfile.registry</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

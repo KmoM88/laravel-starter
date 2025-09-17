@@ -479,24 +479,18 @@ For deploying Jenkins, follow these steps:
     
     ```
 
----
-
 ### Jenkins Instance
 - **Plan:** DigitalOcean Droplet ($18–24/month, can be fine-tuned)
 - **Purpose:** CI/CD orchestration
-
----
 
 ### Volume
 - **Plan:** DigitalOcean Block Storage Volume $10/month
 - **Purpose:** Persistent storage for data/logs
 
----
-
-### Notes
-- Add observations about performance bottlenecks.
-- Compare cost vs. resource consumption.
-- Highlight which instance/resources are sufficient or need scaling.
+### Container Registry
+- **Plan:** DigitalOcean Container Registry (Free Tier)
+- **Purpose:** Store Docker images
+- **Usage:** 427MB/500MB (37 Images)
 
 ---
 

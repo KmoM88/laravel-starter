@@ -46,7 +46,7 @@ pipeline {
     post {
         failure {
             echo "⚠️ ALERT: laravel-app container is UNHEALTHY on droplet ${env.DROPLET_HOST}. Triggering redeployment of latest"
-            build job: '03-Build-Deploy', 
+            build job: 'deploy', 
             //   parameters: [
             //       string(name: 'DROPLET_IP', value: env.DROPLET_HOST),
             //       string(name: 'CONTAINER', value: 'laravel-app')

@@ -251,7 +251,7 @@ For deploying Jenkins, follow these steps:
 ## 5. Billing / Test Resources
 
 ### Laravel App Droplet
-- **Plan:** DigitalOcean Droplet $4/month (smallest available)
+- **Plan:** DigitalOcean Droplet $6/month
 - **Purpose:** Host Laravel application
 - **Tests performed:**
   - [x] k6 load test results (from one source IP)

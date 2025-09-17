@@ -222,8 +222,7 @@ For deploying Jenkins, follow these steps:
    Run `scripts/04-gen-configs.py` to generate XML files from Jenkinsfiles located in the Jenkins path.
    Usage:
    ```sh
-   
-    `python 04-gen_configs.py \
+    python 04-gen_configs.py \
     --repo "https://github.com/tu-org/tu-repo.git" \
     --branch "main" \
     --path ../Jenkins/

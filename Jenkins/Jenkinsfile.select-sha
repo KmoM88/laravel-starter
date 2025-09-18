@@ -10,6 +10,7 @@ pipeline {
         SSH_USER = "root"
         REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
+        APP_KEY = credentials('APP_KEY')
     }
     stages {
         stage('Login doctl') {

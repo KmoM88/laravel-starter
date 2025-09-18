@@ -215,7 +215,7 @@ For deploying Jenkins, follow these steps:
    * Set the admin password.
    * Install default plugins.
    * Create admin user `tierone`.
-   * Add credentials: `DO-token` and `do-ssh-key`.
+   * Add credentials: `DO-token`, `do-ssh-key` and `APP_KEY`.
    * Generate an API token to allow pipeline uploads via the Jenkins API.
 
 5. **Generate Job Configs**

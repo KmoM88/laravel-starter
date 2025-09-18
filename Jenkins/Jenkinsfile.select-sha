@@ -67,7 +67,6 @@ pipeline {
                           -e BUILD_SHA=$tag -e CREATED_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
                           --restart unless-stopped \
                           $REGISTRY/$IMAGE_NAME:$tag
-                        docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $REGISTRY/$IMAGE_NAME:$tag
                     '
                     """
                 }

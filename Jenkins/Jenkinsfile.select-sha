@@ -60,6 +60,12 @@ pipeline {
                         echo "Extrayendo imagen $REGISTRY/$IMAGE_NAME:$tag..."
                         docker pull $REGISTRY/$IMAGE_NAME:$tag
                         echo "Corriendo nueva versión..."
+                        docker run -d --name laravel-app -p 80:8080 \
+                          -e APP_ENV=production \
+                          -e APP_KEY=${env.APP_KEY} \
+                          -e BUILD_SHA=$tag -e CREATED_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
+                          --restart unless-stopped \
+                          $REGISTRY/$IMAGE_NAME:$tag
                         docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $REGISTRY/$IMAGE_NAME:$tag
                     '
                     """

@@ -7,6 +7,7 @@ pipeline {
         SSH_USER = "root"
 		REGISTRY_CREDS = credentials('DO-token')
         SSH_KEY = credentials('do-ssh-key')
+        APP_KEY = credentials('APP_KEY')
     }
     stages {
         stage('Login doctl') {
@@ -68,7 +69,12 @@ pipeline {
 						docker stop $CONTAINER_NAME || true
 						docker rm $CONTAINER_NAME || true
 						docker pull $REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
-						docker run -d --name $CONTAINER_NAME -p 80:8080 --restart unless-stopped $REGISTRY/$IMAGE_NAME:${env.PREV_TAG}
+						docker run -d --name laravel-app -p 80:8080 \
+                          -e APP_ENV=production \
+                          -e APP_KEY=${env.APP_KEY} \
+                          -e BUILD_SHA=${env.PREV_TAG} -e CREATED_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
+                          --restart unless-stopped \
+                          ${env.REGISTRY}/${env.IMAGE_NAME}:${env.PREV_TAG}
 					'
 					"""
 				}

@@ -72,9 +72,9 @@ pipeline {
 						docker run -d --name laravel-app -p 80:8080 \
                           -e APP_ENV=production \
                           -e APP_KEY=${env.APP_KEY} \
-                          -e BUILD_SHA=${env.GIT_SHA} -e CREATED_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
+                          -e BUILD_SHA=${env.PREV_TAG} -e CREATED_AT=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \
                           --restart unless-stopped \
-                          ${env.REGISTRY}/${env.IMAGE_NAME}:${env.GIT_SHA}
+                          ${env.REGISTRY}/${env.IMAGE_NAME}:${env.PREV_TAG}
 					'
 					"""
 				}

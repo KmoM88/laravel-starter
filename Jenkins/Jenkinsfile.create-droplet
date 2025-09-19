@@ -7,7 +7,7 @@ pipeline {
         SSH_KEY_NAME = "JenkisDeploy"
         REGION = "nyc3"
         IMAGE = "ubuntu-22-04-x64"
-        SIZE = "s-1vcpu-1gb"
+        SIZE = "s-1vcpu-512mb-10gb"
         SSH_USER = "root"
     }
     stages {

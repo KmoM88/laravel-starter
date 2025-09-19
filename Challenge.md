@@ -251,17 +251,231 @@ For deploying Jenkins, follow these steps:
 ## 5. Billing / Test Resources
 
 ### Laravel App Droplet
-- **Plan:** DigitalOcean Droplet $6/month
+- **Plan:** DigitalOcean Droplet
 - **Purpose:** Host Laravel application
 - **Tests performed:**
-  - [x] k6 load test results (from one source IP)
+  - [x] k6 load test results (from one source IP)($6/month)
   
   Results from k6s from local (k6s/load-test.js):
   
   - smoke 150:
     - Report k6s:
     ```sh
-      █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=285.87ms min=204.9ms med=236.38ms max=1.23s p(90)=336.16ms p(95)=618.86ms
+          { expected_response:true }...: avg=285.87ms min=204.9ms med=236.38ms max=1.23s p(90)=336.16ms p(95)=618.86ms
+        http_req_failed................: 0.00%  0 out of 1793
+        http_reqs......................: 1793   110.546955/s
+
+        EXECUTION
+        iteration_duration.............: avg=1.3s     min=1.2s    med=1.23s    max=2.48s p(90)=1.34s    p(95)=1.86s   
+        iterations.....................: 1793   110.546955/s
+        vus............................: 29     min=29        max=150
+        vus_max........................: 150    min=150       max=150
+
+        NETWORK
+        data_received..................: 631 kB 39 kB/s
+        data_sent......................: 136 kB 8.4 kB/s
+
+
+    running (16.2s), 000/150 VUs, 1793 complete and 0 interrupted iterations
+    smoke_test_50 ✓ [======================================] 150 VUs  15s
+    ```
+
+    - smoke 250:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=1.08s min=231.66ms med=1.05s max=2.19s p(90)=1.22s p(95)=1.45s
+          { expected_response:true }...: avg=1.08s min=231.66ms med=1.05s max=2.19s p(90)=1.22s p(95)=1.45s
+        http_req_failed................: 0.00%  0 out of 1883
+        http_reqs......................: 1883   111.695779/s
+
+        EXECUTION
+        iteration_duration.............: avg=2.11s min=1.43s    med=2.07s max=3.46s p(90)=2.23s p(95)=2.7s 
+        iterations.....................: 1883   111.695779/s
+        vus............................: 125    min=125       max=250
+        vus_max........................: 250    min=250       max=250
+
+        NETWORK
+        data_received..................: 663 kB 39 kB/s
+        data_sent......................: 143 kB 8.5 kB/s
+
+
+    running (16.9s), 000/250 VUs, 1883 complete and 0 interrupted iterations
+    smoke_test_50 ✓ [======================================] 250 VUs  15s
+    ```
+
+    - smoke 375:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=1.58s min=261.05ms med=1.7s  max=2.1s  p(90)=1.92s p(95)=1.97s
+          { expected_response:true }...: avg=1.66s min=261.05ms med=1.71s max=2.1s  p(90)=1.92s p(95)=1.97s
+        http_req_failed................: 5.37%  118 out of 2197
+        http_reqs......................: 2197   124.12794/s
+
+        EXECUTION
+        iteration_duration.............: avg=2.79s min=1.47s    med=2.91s max=3.41s p(90)=3.12s p(95)=3.16s
+        iterations.....................: 2197   124.12794/s
+        vus............................: 116    min=116         max=375
+        vus_max........................: 375    min=375         max=375
+
+        NETWORK
+        data_received..................: 732 kB 41 kB/s
+        data_sent......................: 170 kB 9.6 kB/s
+
+
+    running (17.7s), 000/375 VUs, 2197 complete and 0 interrupted iterations
+    smoke_test_150 ✓ [======================================] 375 VUs  15s
+    ```
+
+    - smoke 450:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=1.67s min=198.77ms med=2.04s max=2.65s p(90)=2.41s p(95)=2.47s
+          { expected_response:true }...: avg=2.05s min=291.27ms med=2.09s max=2.65s p(90)=2.44s p(95)=2.48s
+        http_req_failed................: 21.32% 552 out of 2589
+        http_reqs......................: 2589   57.531708/s
+
+        EXECUTION
+        iteration_duration.............: avg=2.89s min=1.39s    med=3.25s max=3.98s p(90)=3.61s p(95)=3.67s
+        iterations.....................: 2589   57.531708/s
+        vus............................: 1      min=1           max=450
+        vus_max........................: 450    min=450         max=450
+
+        NETWORK
+        data_received..................: 717 kB 16 kB/s
+        data_sent......................: 199 kB 4.4 kB/s
+
+
+    running (45.0s), 000/450 VUs, 2589 complete and 1 interrupted iterations
+    smoke_test_150 ✓ [======================================] 450 VUs  15s
+    ```
+
+    - stress 150:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=302.63ms min=204.65ms med=241.31ms max=646.26ms p(90)=488.38ms p(95)=538.74ms
+          { expected_response:true }...: avg=302.63ms min=204.65ms med=241.31ms max=646.26ms p(90)=488.38ms p(95)=538.74ms
+        http_req_failed................: 0.00%  0 out of 7470
+        http_reqs......................: 7470   82.412557/s
+
+        EXECUTION
+        iteration_duration.............: avg=807.56ms min=705.26ms med=743.39ms max=1.29s    p(90)=992.46ms p(95)=1.04s   
+        iterations.....................: 7470   82.412557/s
+        vus............................: 5      min=1         max=149
+        vus_max........................: 150    min=150       max=150
+
+        NETWORK
+        data_received..................: 2.6 MB 29 kB/s
+        data_sent......................: 568 kB 6.3 kB/s
+
+
+    running (1m30.6s), 000/150 VUs, 7470 complete and 0 interrupted iterations
+    stress_test_150 ✓ [======================================] 000/150 VUs  1m30s
+    ```
+
+    - stress 250:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=645.86ms min=204.47ms med=685.31ms max=1.42s p(90)=1.21s p(95)=1.25s
+          { expected_response:true }...: avg=645.86ms min=204.47ms med=685.31ms max=1.42s p(90)=1.21s p(95)=1.25s
+        http_req_failed................: 0.00%  0 out of 9860
+        http_reqs......................: 9860   108.984026/s
+
+        EXECUTION
+        iteration_duration.............: avg=1.15s    min=705.29ms med=1.18s    max=2.1s  p(90)=1.71s p(95)=1.76s
+        iterations.....................: 9860   108.984026/s
+        vus............................: 5      min=3         max=249
+        vus_max........................: 250    min=250       max=250
+
+        NETWORK
+        data_received..................: 3.5 MB 38 kB/s
+        data_sent......................: 749 kB 8.3 kB/s
+
+
+    running (1m30.5s), 000/250 VUs, 9860 complete and 0 interrupted iterations
+    stress_test_250 ✓ [======================================] 000/250 VUs  1m30s
+    ```
+
+    - stress 400:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=1.14s min=198.28ms med=1.17s max=2.46s p(90)=2.08s p(95)=2.16s
+          { expected_response:true }...: avg=1.17s min=204.75ms med=1.21s max=2.46s p(90)=2.08s p(95)=2.16s
+        http_req_failed................: 2.22%  239 out of 10718
+        http_reqs......................: 10718  118.344303/s
+
+        EXECUTION
+        iteration_duration.............: avg=1.71s min=705.07ms med=1.68s max=3.55s p(90)=2.76s p(95)=2.86s
+        iterations.....................: 10718  118.344303/s
+        vus............................: 9      min=4            max=399
+        vus_max........................: 400    min=400          max=400
+
+        NETWORK
+        data_received..................: 3.7 MB 41 kB/s
+        data_sent......................: 857 kB 9.5 kB/s
+
+
+    running (1m30.6s), 000/400 VUs, 10718 complete and 0 interrupted iterations
+    stress_test_400 ✓ [======================================] 000/400 VUs  1m30s
+
+    kmom@ASUS-F15 /media/kmom/Data/SSDATA/github/kmom88/laravel-starter/k6s
+    ```
+
+    - stress 600:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
+
+        HTTP
+        http_req_duration..............: avg=1.25s min=0s       med=914.96ms max=44.46s p(90)=2.47s p(95)=2.56s
+          { expected_response:true }...: avg=1.36s min=205.8ms  med=1.15s    max=44.46s p(90)=2.49s p(95)=2.57s
+        http_req_failed................: 13.07% 1491 out of 11405
+        http_reqs......................: 11405  95.040354/s
+
+        EXECUTION
+        iteration_duration.............: avg=2.03s min=706.05ms med=1.44s    max=46.92s p(90)=3.27s p(95)=3.94s
+        iterations.....................: 11403  95.023688/s
+        vus............................: 1      min=1             max=599
+        vus_max........................: 600    min=600           max=600
+
+        NETWORK
+        data_received..................: 3.5 MB 29 kB/s
+        data_sent......................: 897 kB 7.5 kB/s
+
+
+    running (2m00.0s), 000/600 VUs, 11403 complete and 94 interrupted iterations
+    stress_test_600 ✓ [======================================] 000/600 VUs  1m30s
+    ```
+
+  - [x] k6 load test results (from one source IP)($4/month)
+  
+  Results from k6s from local (k6s/load-test.js):
+  
+  - smoke 150:
+    - Report k6s:
+    ```sh
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=315.97ms min=204.93ms med=261.69ms max=1.28s p(90)=449.9ms p(95)=733.08ms
@@ -280,8 +494,6 @@ For deploying Jenkins, follow these steps:
         data_sent......................: 140 kB 8.6 kB/s
 
 
-
-
     running (16.2s), 000/150 VUs, 1744 complete and 0 interrupted iterations
     smoke_test_150 ✓ [======================================] 150 VUs  15s
     ```
@@ -289,7 +501,7 @@ For deploying Jenkins, follow these steps:
   - smoke 250:
     - Report k6s:
     ```sh
-      █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=918.65ms min=236.7ms med=881.33ms max=2.23s p(90)=1.06s p(95)=1.36s
@@ -311,7 +523,7 @@ For deploying Jenkins, follow these steps:
   - smoke 375:
     - Report k6s:
     ```sh
-      █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=1.43s min=225.43ms med=1.54s max=2.2s  p(90)=1.88s p(95)=1.93s
@@ -330,8 +542,6 @@ For deploying Jenkins, follow these steps:
         data_sent......................: 199 kB 11 kB/s
 
 
-
-
     running (17.9s), 000/375 VUs, 2325 complete and 0 interrupted iterations
     smoke_test_375 ✓ [======================================] 375 VUs  15s
     ```
@@ -339,7 +549,7 @@ For deploying Jenkins, follow these steps:
   - smoke 450:
     - Report k6s:
     ```sh
-      █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=1.63s min=198.69ms med=1.95s max=2.47s p(90)=2.26s p(95)=2.29s
@@ -358,8 +568,6 @@ For deploying Jenkins, follow these steps:
         data_sent......................: 212 kB 12 kB/s
 
 
-
-
     running (18.2s), 000/450 VUs, 2614 complete and 0 interrupted iterations
     smoke_test_450 ✓ [======================================] 450 VUs  15s
     ```
@@ -367,7 +575,7 @@ For deploying Jenkins, follow these steps:
   - stress test 150:
     - Report k6s:
     ```sh
-      █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=289.02ms min=202.98ms med=226.83ms max=857.56ms p(90)=475.44ms p(95)=602.37ms
@@ -386,8 +594,6 @@ For deploying Jenkins, follow these steps:
         data_sent......................: 608 kB 6.7 kB/s
 
 
-
-
     running (1m30.4s), 000/150 VUs, 7600 complete and 0 interrupted iterations
     stress_test_150 ✓ [======================================] 000/150 VUs  1m30s
     ```
@@ -395,7 +601,7 @@ For deploying Jenkins, follow these steps:
   - stress test 250:
     - Report k6s:
     ```sh
-      █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=629.73ms min=203.43ms med=617.92ms max=1.53s p(90)=1.16s p(95)=1.27s
@@ -414,18 +620,14 @@ For deploying Jenkins, follow these steps:
         data_sent......................: 801 kB 8.8 kB/s
 
 
-
-
     running (1m30.5s), 000/250 VUs, 10007 complete and 0 interrupted iterations
     stress_test_250 ✓ [======================================] 000/250 VUs  1m30s
-
-    kmom@ASUS-F15 /media/kmom/Data/SSDATA/github/kmom88/laravel-starter/k6s
     ```
 
   - stress test 375:
     - Report k6s:
     ```sh
-      █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=1.02s min=199.6ms  med=1.05s max=2.96s p(90)=1.87s p(95)=1.99s
@@ -444,8 +646,6 @@ For deploying Jenkins, follow these steps:
         data_sent......................: 934 kB 10 kB/s
 
 
-
-
     running (1m30.6s), 000/375 VUs, 10973 complete and 0 interrupted iterations
     stress_test_375 ✓ [======================================] 000/375 VUs  1m30s
     ```
@@ -453,7 +653,7 @@ For deploying Jenkins, follow these steps:
   - stress test 600:
     - Report k6s:
     ```sh
-          █ TOTAL RESULTS 
+    █ TOTAL RESULTS 
 
         HTTP
         http_req_duration..............: avg=1.05s min=197.91ms med=341.53ms max=3.61s p(90)=2.56s p(95)=2.66s
@@ -472,12 +672,26 @@ For deploying Jenkins, follow these steps:
         data_sent......................: 1.1 MB 10 kB/s
 
 
-
-
     running (1m52.5s), 000/600 VUs, 13795 complete and 1 interrupted iterations
-    stress_test_375 ✓ [======================================] 000/600 VUs  1m30s
+    stress_test_600 ✓ [======================================] 000/600 VUs  1m30s
     
     ```
+
+### 📊 k6 Load Test Comparison ($6/month vs $4/month DO instances)
+
+| Test Type   | VUs  | $6 Instance - Avg Duration | $6 Instance - Fail % | $6 Instance - RPS | $4 Instance - Avg Duration | $4 Instance - Fail % | $4 Instance - RPS |
+|-------------|------|----------------------------|----------------------|-------------------|----------------------------|----------------------|-------------------|
+| Smoke 150   | 150  | 285.9 ms                   | 0.00%                | 110.5/s           | 316.0 ms                   | 0.00%                | 107.6/s           |
+| Smoke 250   | 250  | 1.08 s                     | 0.00%                | 111.7/s           | 918.6 ms                   | 0.00%                | 120.8/s           |
+| Smoke 375   | 375  | 1.58 s                     | 5.37%                | 124.1/s           | 1.43 s                     | 4.86%                | 130.0/s           |
+| Smoke 450   | 450  | 1.67 s                     | 21.3%                | 57.5/s            | 1.63 s                     | 16.2%                | 143.6/s           |
+| Stress 150  | 150  | 302.6 ms                   | 0.00%                | 82.4/s            | 289.0 ms                   | 0.00%                | 84.1/s            |
+| Stress 250  | 250  | 645.9 ms                   | 0.00%                | 109.0/s           | 629.7 ms                   | 0.00%                | 110.6/s           |
+| Stress 375  | 375  | 1.14 s                     | 2.22%                | 118.3/s           | 1.02 s                     | 0.23%                | 121.1/s           |
+| Stress 400  | 400  | 1.14 s                     | 2.22%                | 118.3/s           | –                          | –                    | –                 |
+| Stress 600  | 600  | 1.25 s                     | 13.1%                | 95.0/s            | 1.05 s                     | 27.1%                | 122.7/s           |
+
+
 
 ### Jenkins Instance
 - **Plan:** DigitalOcean Droplet ($18–24/month, can be fine-tuned)
